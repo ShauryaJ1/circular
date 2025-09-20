@@ -1,14 +1,12 @@
 import React from 'react'
-import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { TagList } from '@/components/ui/tag-list'
-import { TaskRun } from '@/types'
 import { formatDate, formatDuration } from '@/lib/utils'
 
 interface RunListProps {
-  runs: TaskRun[]
+  runs: any[] // Using any[] since we're getting API data with different structure
 }
 
 export function RunList({ runs }: RunListProps) {
@@ -21,51 +19,45 @@ export function RunList({ runs }: RunListProps) {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <CardTitle className="text-lg">
-                    <Link 
-                      href={`/runs/${run.id}`}
-                      className="hover:text-blue-600 dark:hover:text-blue-400"
-                    >
+                    <span className="text-black dark:text-black">
                       Run {run.id.substring(0, 8)}
-                    </Link>
+                    </span>
                   </CardTitle>
                   <StatusBadge status={run.status} />
                 </div>
-                <div className="text-sm text-muted-foreground">
+                <div className="text-sm text-black dark:text-black">
                   {formatDate(run.startedAt)}
                 </div>
               </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {/* Task Link */}
+                {/* Task Info */}
                 <div>
-                  <span className="text-sm text-muted-foreground">Task: </span>
-                  <Link 
-                    href={`/tasks/${run.taskId}`}
-                    className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
-                  >
+                  <span className="text-sm text-black dark:text-black">Task: </span>
+                  <span className="text-sm font-medium text-black dark:text-black">
                     {run.taskId}
-                  </Link>
+                  </span>
                 </div>
 
                 {/* Duration */}
                 {run.duration && (
                   <div>
-                    <span className="text-sm text-muted-foreground">Duration: </span>
-                    <span className="text-sm font-medium">
+                    <span className="text-sm text-black dark:text-black">Duration: </span>
+                    <span className="text-sm font-medium text-black dark:text-black">
                       {formatDuration(run.duration)}
                     </span>
                   </div>
                 )}
 
                 {/* Error */}
-                {run.error && (
+                {run.metadata?.error && (
                   <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
                     <div className="text-sm font-medium text-red-800 dark:text-red-200 mb-1">
                       Error
                     </div>
                     <div className="text-sm text-red-700 dark:text-red-300">
-                      {run.error}
+                      {run.metadata.error}
                     </div>
                   </div>
                 )}
@@ -73,26 +65,26 @@ export function RunList({ runs }: RunListProps) {
                 {/* Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                   <div>
-                    <div className="text-muted-foreground">Logs</div>
-                    <div className="font-semibold">{run.logs.length}</div>
+                    <div className="text-black dark:text-black">Logs</div>
+                    <div className="font-semibold text-black dark:text-black">{run.logs?.length || 0}</div>
                   </div>
                   <div>
-                    <div className="text-muted-foreground">Console</div>
-                    <div className="font-semibold">{run.consoleOutputs.length}</div>
+                    <div className="text-black dark:text-black">Console</div>
+                    <div className="font-semibold text-black dark:text-black">{run.metadata?.consoleLogs || 0}</div>
                   </div>
                   <div>
-                    <div className="text-muted-foreground">Network</div>
-                    <div className="font-semibold">{run.networkRequests.length}</div>
+                    <div className="text-black dark:text-black">Network</div>
+                    <div className="font-semibold text-black dark:text-black">{run.metadata?.networkRequests || 0}</div>
                   </div>
                   <div>
-                    <div className="text-muted-foreground">Tags</div>
-                    <div className="font-semibold">{run.tags.length}</div>
+                    <div className="text-black dark:text-black">Status</div>
+                    <div className="font-semibold text-black dark:text-black">{run.metadata?.result ? 'Success' : 'Failed'}</div>
                   </div>
                 </div>
 
                 {/* Tags */}
-                {run.tags.length > 0 && (
-                  <TagList tags={run.tags} limit={5} />
+                {run.metadata?.tags && run.metadata.tags.length > 0 && (
+                  <TagList tags={run.metadata.tags} limit={5} />
                 )}
               </div>
             </CardContent>

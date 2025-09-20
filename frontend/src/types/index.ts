@@ -2,14 +2,6 @@ export type TaskStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cance
 
 export type RunStatus = 'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
 
-// Import LogLevel from Prisma client when available
-export enum LogLevel {
-  LOG = 'LOG',
-  INFO = 'INFO',
-  WARN = 'WARN',
-  ERROR = 'ERROR',
-  DEBUG = 'DEBUG'
-}
 
 export interface Task {
   id: string;
@@ -44,8 +36,7 @@ export interface TaskRun {
 
 export interface LogEntry {
   id: string;
-  runId: string;
-  level: LogLevel;
+  runId?: string;
   message: string;
   timestamp: Date;
   metadata?: Record<string, any>;

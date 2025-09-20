@@ -7,14 +7,12 @@ import {
   HomeIcon,
   DocumentTextIcon,
   PlayIcon,
-  LightBulbIcon,
 } from '@heroicons/react/24/outline'
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
   { name: 'Logs', href: '/logs', icon: DocumentTextIcon },
   { name: 'Runs', href: '/runs', icon: PlayIcon },
-  { name: 'Solutions', href: '/solutions', icon: LightBulbIcon },
 ]
 
 export function Sidebar() {

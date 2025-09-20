@@ -1,4 +1,4 @@
-import { Task, TaskRun, Solution, DashboardStats, BrowserLog, NetworkLog, LogEntry, LogLevel } from '@/types'
+import { Task, TaskRun, Solution, DashboardStats, BrowserLog, NetworkLog, LogEntry } from '@/types'
 
 // Mock data that integrates with the Stagehand browser tools structure
 export const mockTasks: Task[] = [
@@ -58,7 +58,6 @@ export const mockRuns: TaskRun[] = [
       {
         id: 'log-1',
         runId: 'run-1',
-        level: LogLevel.INFO,
         message: 'Starting login flow test',
         timestamp: new Date('2024-01-15T14:25:00Z'),
         tags: ['authentication', 'test-start'],
@@ -66,7 +65,6 @@ export const mockRuns: TaskRun[] = [
       {
         id: 'log-2',
         runId: 'run-1',
-        level: LogLevel.INFO,
         message: 'Navigating to login page',
         timestamp: new Date('2024-01-15T14:25:15Z'),
         tags: ['navigation', 'login-page'],
@@ -74,7 +72,6 @@ export const mockRuns: TaskRun[] = [
       {
         id: 'log-3',
         runId: 'run-1',
-        level: LogLevel.INFO,
         message: 'Filling login form with test credentials',
         timestamp: new Date('2024-01-15T14:26:00Z'),
         tags: ['form-filling', 'credentials'],
@@ -82,7 +79,6 @@ export const mockRuns: TaskRun[] = [
       {
         id: 'log-4',
         runId: 'run-1',
-        level: LogLevel.INFO,
         message: 'Login successful, redirected to dashboard',
         timestamp: new Date('2024-01-15T14:28:30Z'),
         tags: ['success', 'redirect', 'dashboard'],
@@ -136,7 +132,6 @@ export const mockRuns: TaskRun[] = [
       {
         id: 'log-5',
         runId: 'run-2',
-        level: LogLevel.INFO,
         message: 'Starting checkout flow test',
         timestamp: new Date('2024-01-15T11:45:00Z'),
         tags: ['checkout', 'test-start', 'e-commerce'],
@@ -144,7 +139,6 @@ export const mockRuns: TaskRun[] = [
       {
         id: 'log-6',
         runId: 'run-2',
-        level: LogLevel.WARN,
         message: 'Payment gateway taking longer than expected',
         timestamp: new Date('2024-01-15T11:50:00Z'),
         tags: ['payment', 'timeout', 'performance'],

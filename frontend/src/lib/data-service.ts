@@ -130,7 +130,7 @@ export class DataService {
         reject(new Error('Export timeout'))
       }, 10000)
 
-      this.once('logs_exported', (data) => {
+      this.once('logs_exported', (data: string) => {
         clearTimeout(timeout)
         resolve(data)
       })
