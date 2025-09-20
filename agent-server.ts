@@ -50,10 +50,10 @@ async function initializeAgent() {
     
     // Create the agent
     agent = stagehand.agent({
-      provider: getProviderInfo().name === 'Anthropic Claude' ? 'anthropic' : 'google',
+      provider: 'cerebras',
       model: getProviderInfo().model,
       options: {
-        apiKey: process.env.ANTHROPIC_API_KEY || process.env.GEMINI_API_KEY,
+        apiKey: process.env.CEREBRAS_API_KEY,
       },
     });
     
