@@ -13,8 +13,12 @@
     "run:agent-flexible": "tsx example-agent-flexible.ts",
     "run:database": "tsx example-database-usage.ts",
     "test:failed-requests": "tsx test-failed-requests.ts",
+    "test:browser-visible": "tsx test-browser-visibility.ts",
     "test:setup": "tsx test-setup.ts",
-    "dev": "echo 'Start the Next.js app first with: pnpm dev:next' && echo 'Then in another terminal run: pnpm run:stagehand'",
+    "agent": "tsx agent.ts",
+    "agent:run": "tsx agent.ts --run",
+    "agent:test": "tsx agent.ts --test",
+    "dev": "echo 'Start the Next.js app first with: pnpm dev:next' && echo 'Then run: pnpm agent:run'",
     "test": "tsx test-setup.ts",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
@@ -34,13 +38,17 @@
     "@prisma/client": "^5.22.0",
     "@supabase/supabase-js": "^2.45.4",
     "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "node-fetch": "^3.3.2",
     "playwright": "^1.55.0",
     "pg": "^8.12.0"
   },
   "devDependencies": {
+    "@types/express": "^5.0.3",
     "@types/node": "^24.4.0",
     "@types/pg": "^8.11.10",
     "prisma": "^5.22.0",
+    "@types/node-fetch": "^2.6.13",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2"
   }
