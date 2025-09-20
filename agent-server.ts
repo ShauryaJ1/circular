@@ -2,6 +2,38 @@ import express from 'express';
 import { StagehandWithBrowserTools } from './stagehand-browser-tools';
 import { getStagehandConfig, getProviderInfo, getAgentConfig, getProvider } from './config';
 
+// Function to create run entry via API
+async function createRunEntry(taskId: string, status: string, metadata: any = {}) {
+  try {
+    const response = await fetch('http://localhost:3001/api/runs', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        taskId,
+        status,
+        metadata: {
+          ...metadata,
+          timestamp: new Date().toISOString(),
+          source: 'agent-server'
+        }
+      }),
+    });
+    
+    if (response.ok) {
+      const result = await response.json();
+      console.log('✅ Run entry created:', result.id);
+      return result;
+    } else {
+      console.log('⚠️ Failed to create run entry:', response.status);
+    }
+  } catch (error) {
+    console.log('⚠️ Could not connect to frontend API for run logging:', error.message);
+  }
+  return null;
+}
+
 const app = express();
 app.use(express.json());
 
@@ -38,8 +70,15 @@ async function initializeAgent() {
     await stagehand.init();
     await stagehand.startMonitoring();
     
-    // Navigate to the test app
-    await stagehand.page.goto('http://localhost:3000');
+    // Navigate to the test app (try port 3001 first, then 3000)
+    try {
+      await stagehand.page.goto('http://localhost:3001');
+      console.log('✅ Connected to frontend on port 3001');
+    } catch (error) {
+      console.log('Port 3001 not available, trying 3000...');
+      await stagehand.page.goto('http://localhost:3000');
+      console.log('✅ Connected to frontend on port 3000');
+    }
     
     // Handle browser page close
     stagehand.page.on('close', () => {
@@ -101,6 +140,23 @@ app.post('/test', async (req, res) => {
     return res.status(503).json({ error: 'Agent not ready' });
   }
 
+  // Check if browser context is still valid
+  try {
+    const isConnected = await stagehand.page.evaluate(() => true);
+  } catch (error) {
+    console.log('⚠️ Browser context lost, reinitializing...');
+    try {
+      // Set ready to false during reinitialization
+      isReady = false;
+      await initializeAgent();
+      console.log('✅ Agent reinitialized successfully');
+    } catch (reinitError: any) {
+      console.error('❌ Failed to reinitialize agent:', reinitError.message);
+      isReady = false;
+      return res.status(503).json({ error: 'Agent reinitialization failed: ' + reinitError.message });
+    }
+  }
+
   const { context, instruction } = req.body;
   
   if (!instruction) {
@@ -113,12 +169,57 @@ app.post('/test', async (req, res) => {
   }
   console.log(`   Instruction: ${instruction}`);
   
+  // Create a task ID for this run
+  const taskId = `task-${Date.now()}`;
+  const startTime = new Date();
+  
+  // Log run start
+  await createRunEntry(taskId, 'running', {
+    instruction,
+    context,
+    startTime: startTime.toISOString()
+  });
+  
   try {
-    // Always refresh the page first
-    console.log('🔄 Refreshing page before starting tests...');
-    await stagehand.page.reload({ waitUntil: 'networkidle' });
-    await stagehand.page.waitForTimeout(2000); // Give page more time to stabilize
-    console.log('✅ Page refreshed successfully');
+    // Check if page is still available and refresh if needed
+    console.log('🔄 Checking page status and refreshing if needed...');
+    try {
+      // Try to get the current URL to test if page is still active
+      const currentUrl = await stagehand.page.url();
+      console.log(`📍 Current page: ${currentUrl}`);
+      
+      // Skip reload if we're already on the right page and it's responsive
+      if (currentUrl.includes('localhost:3001') || currentUrl.includes('localhost:3000')) {
+        console.log('✅ Page is already loaded and responsive');
+      } else {
+        // Navigate to frontend if we're on wrong page
+        console.log('🔄 Navigating to frontend...');
+        try {
+          await stagehand.page.goto('http://localhost:3001', { waitUntil: 'networkidle' });
+          console.log('✅ Connected to frontend on port 3001');
+        } catch (navError) {
+          console.log('Port 3001 not available, trying 3000...');
+          await stagehand.page.goto('http://localhost:3000', { waitUntil: 'networkidle' });
+          console.log('✅ Connected to frontend on port 3000');
+        }
+      }
+      
+      await stagehand.page.waitForTimeout(1000);
+    } catch (pageError: any) {
+      console.log('⚠️ Page appears to be closed, attempting to navigate to frontend...');
+      
+      // Try to navigate to the frontend again
+      try {
+        await stagehand.page.goto('http://localhost:3001', { waitUntil: 'networkidle' });
+        console.log('✅ Reconnected to frontend on port 3001');
+      } catch (navError) {
+        console.log('Port 3001 not available, trying 3000...');
+        await stagehand.page.goto('http://localhost:3000', { waitUntil: 'networkidle' });
+        console.log('✅ Reconnected to frontend on port 3000');
+      }
+      
+      await stagehand.page.waitForTimeout(1000);
+    }
     
     // Clear previous logs
     stagehand.clearLogs();
@@ -145,9 +246,27 @@ app.post('/test', async (req, res) => {
     // Don't save to file anymore, just return the data
     console.log('✅ Test completed successfully');
     
+    const endTime = new Date();
+    const duration = endTime.getTime() - startTime.getTime();
+    
+    // Log successful completion
+    await createRunEntry(taskId, 'completed', {
+      instruction,
+      context,
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
+      duration,
+      consoleLogs: consoleLogs.length,
+      networkRequests: networkLogs.length,
+      failedRequests: failedRequests.length,
+      result: result?.success || true
+    });
+    
     res.json({
       success: true,
       result,
+      taskId,
+      duration,
       logs: {
         console: consoleLogs,
         network: networkLogs.length,
@@ -161,9 +280,26 @@ app.post('/test', async (req, res) => {
     
   } catch (error: any) {
     console.error('❌ Test execution failed:', error.message);
+    
+    const endTime = new Date();
+    const duration = endTime.getTime() - startTime.getTime();
+    
+    // Log failed completion
+    await createRunEntry(taskId, 'failed', {
+      instruction,
+      context,
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
+      duration,
+      error: error.message,
+      result: false
+    });
+    
     res.status(500).json({ 
       success: false, 
-      error: error.message 
+      error: error.message,
+      taskId,
+      duration
     });
   }
 });
