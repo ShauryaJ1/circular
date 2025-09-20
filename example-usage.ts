@@ -1,20 +1,20 @@
 import { StagehandWithBrowserTools } from './stagehand-browser-tools';
 import { saveFailedRequestsToFile, formatFailedRequestsSummary } from './save-failed-requests';
+import { getStagehandConfig } from './config';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
 async function runStagehandWithBrowserTools() {
+  const modelConfig = getStagehandConfig();
+  
   const stagehand = new StagehandWithBrowserTools({
     env: 'LOCAL',
     localBrowserLaunchOptions: {
       headless: false,
       devtools: true,
     },
-    modelName: 'claude-sonnet-4-20250514',
-    modelClientOptions: {
-      apiKey: process.env.ANTHROPIC_API_KEY,
-    },
+    ...modelConfig,
   });
 
   try {
@@ -25,28 +25,34 @@ async function runStagehandWithBrowserTools() {
     await stagehand.page.goto('http://localhost:3000');
     
     console.log('\n=== Testing Console Logs ===');
-    await stagehand.act('Click on the "Test Console" button');
+    // Navigate to a test page and interact with it
+    await stagehand.page.goto('https://example.com');
     await stagehand.page.waitForTimeout(1000);
     
     const consoleLogs = stagehand.getConsoleLogs();
     console.log('Console Logs:', consoleLogs);
 
     console.log('\n=== Testing LocalStorage ===');
-    await stagehand.act('Fill in the localStorage form and submit it');
+    // Set some localStorage data
+    await stagehand.page.evaluate(() => {
+      localStorage.setItem('test-key', 'test-value');
+    });
     await stagehand.page.waitForTimeout(1000);
     
     const storageData = await stagehand.getStorageData();
     console.log('Storage Data:', storageData);
 
     console.log('\n=== Testing Network Requests ===');
-    await stagehand.act('Click on "Test API" button to make tRPC requests');
+    // Make a network request
+    await stagehand.page.goto('https://httpbin.org/get');
     await stagehand.page.waitForTimeout(2000);
     
-    const networkLogs = stagehand.getNetworkLogs({ urlPattern: 'api/trpc' });
-    console.log('tRPC Network Logs:', networkLogs);
+    const networkLogs = stagehand.getNetworkLogs();
+    console.log('Network Logs:', networkLogs);
 
     console.log('\n=== Testing Failed Requests ===');
-    await stagehand.act('Click on "Test Broken API" button');
+    // Try to access a non-existent page
+    await stagehand.page.goto('https://httpbin.org/status/404');
     await stagehand.page.waitForTimeout(2000);
     
     const failedRequests = stagehand.getFailedRequests();
@@ -58,31 +64,12 @@ async function runStagehandWithBrowserTools() {
       console.log(`Failed requests saved to: ${filepath}`);
     }
 
-    // Extract structured data from the page
-    console.log('\n=== Extracting Page Data ===');
-    const pageData = await stagehand.extract({
-      instruction: 'Extract all form data and button text from the page',
-      schema: {
-        type: 'object',
-        properties: {
-          forms: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                id: { type: 'string' },
-                fields: { type: 'array', items: { type: 'string' } }
-              }
-            }
-          },
-          buttons: {
-            type: 'array',
-            items: { type: 'string' }
-          }
-        }
-      }
-    });
-    console.log('Extracted Data:', pageData);
+    // Get page content
+    console.log('\n=== Getting Page Data ===');
+    const pageTitle = await stagehand.page.title();
+    const pageUrl = stagehand.page.url();
+    console.log('Page Title:', pageTitle);
+    console.log('Page URL:', pageUrl);
 
     // Export all logs
     const logsExport = stagehand.exportLogs();

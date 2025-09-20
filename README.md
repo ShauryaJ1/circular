@@ -32,13 +32,9 @@ cp env.sample .env
 # Then edit .env with your API key (choose one):
 ```
 
-**Option 1: Google Gemini** (recommended for beginners)
-- Get your API key from: https://aistudio.google.com/app/apikey
-- Set `GEMINI_API_KEY=your_key_here`
-
-**Option 2: Anthropic Claude** (more powerful agent capabilities)
-- Get your API key from: https://console.anthropic.com/
-- Set `ANTHROPIC_API_KEY=your_key_here`
+**Cerebras** (powerful and cost-effective)
+- Get your API key from: https://console.cerebras.net/
+- Set `CEREBRAS_API_KEY=your_key_here`
 
 ### 3. Verify Setup (Optional)
 Test that everything is configured correctly:
@@ -75,6 +71,66 @@ pnpm run:agent         # Uses Claude agent
 # Note: Update these files to use Gemini if needed
 ```
 
+## 🎮 Agent Server System (NEW!)
+
+The agent can now run as a server that accepts test commands via CLI:
+
+### Prerequisites
+- **tsx installed globally**: `npm install -g tsx`
+- **Dependencies installed**: `pnpm install`
+- **.env configured**: with your API keys
+
+### Quick Start
+```bash
+# Terminal 1: Start Next.js app
+pnpm dev:next
+
+# Terminal 2: Start agent server
+./agent.sh --run        # Unix/Mac
+agent.bat --run         # Windows
+
+# Terminal 3: Send test commands
+./agent.sh --test "Click the Test Console button"              # Unix/Mac
+./agent.sh --test -context "Testing forms" "Fill the form"     # Unix/Mac
+
+agent.bat --test "Click the Test Console button"               # Windows
+agent.bat --test -context "Testing forms" "Fill the form"      # Windows
+```
+
+### Commands
+
+#### Start Agent Server
+```bash
+# Unix/Mac/Linux
+./agent.sh --run
+
+# Windows
+agent.bat --run
+```
+
+#### Send Test Commands
+```bash
+# Simple test (Unix/Mac)
+./agent.sh --test "Click on the login button"
+
+# Simple test (Windows)
+agent.bat --test "Click on the login button"
+
+# Test with context (Unix/Mac)
+./agent.sh --test -context "User is on homepage" "Navigate to settings"
+
+# Test with context (Windows)
+agent.bat --test -context "User is on homepage" "Navigate to settings"
+```
+
+### Features
+- ✅ **Visible browser window** - stays open and maximized
+- ✅ Agent runs as persistent server
+- ✅ Page refreshes before each test
+- ✅ Context is added to system prompt
+- ✅ Failed requests automatically saved to files
+- ✅ Real-time browser monitoring with DevTools
+
 ## Usage
 
 ### Basic Example
@@ -90,7 +146,7 @@ const stagehand = new StagehandWithBrowserTools({
   },
   modelName: 'google/gemini-2.5-flash',
   modelClientOptions: {
-    apiKey: process.env.GEMINI_API_KEY,
+    apiKey: process.env.CEREBRAS_API_KEY,
   },
 });
 
@@ -103,7 +159,7 @@ const stagehand = new StagehandWithBrowserTools({
   },
   modelName: 'claude-sonnet-4-20250514',
   modelClientOptions: {
-    apiKey: process.env.ANTHROPIC_API_KEY,
+    apiKey: process.env.CEREBRAS_API_KEY,
   },
 });
 
@@ -130,7 +186,7 @@ const agent = stagehand.agent({
   provider: 'google',
   model: 'gemini-2.5-flash',
   options: {
-    apiKey: process.env.GEMINI_API_KEY,
+    apiKey: process.env.CEREBRAS_API_KEY,
   }
 });
 
@@ -139,7 +195,7 @@ const agent = stagehand.agent({
   provider: 'anthropic',
   model: 'claude-sonnet-4-20250514',
   options: {
-    apiKey: process.env.ANTHROPIC_API_KEY,
+    apiKey: process.env.CEREBRAS_API_KEY,
   }
 });
 
@@ -208,11 +264,25 @@ pnpm test:failed-requests
 stagehand_with_browser_tools/
 ├── stagehand-browser-tools.ts  # Extended Stagehand class with browser tools
 ├── config.ts                    # Configuration helper for provider switching
-├── example-usage.ts             # Basic example (currently set for Claude)
-├── example-agent-usage.ts       # Agent example (currently set for Claude)
-├── example-usage-flexible.ts    # Auto-detect provider from .env
-├── example-agent-flexible.ts    # Auto-detect provider agent example
-├── test-setup.ts                # Setup verification script
+│
+├── Agent System (NEW!)
+│   ├── agent.ts                # Main CLI entry point
+│   ├── agent-server.ts         # Agent server that runs browser
+│   ├── agent-client.ts         # Client for sending test commands
+│   ├── agent.sh                # Unix/Mac shell script
+│   └── agent.bat               # Windows batch script
+│
+├── Examples
+│   ├── example-usage.ts        # Basic example
+│   ├── example-agent-usage.ts   # Agent example
+│   ├── example-usage-flexible.ts # Auto-detect provider
+│   └── example-agent-flexible.ts # Auto-detect provider agent
+│
+├── Testing
+│   ├── test-setup.ts           # Setup verification
+│   ├── test-failed-requests.ts  # Test failed request capture
+│   └── test-agent-system.sh    # Test the agent system
+│
 ├── next-app/                    # Test Next.js application
 │   ├── src/
 │   │   ├── app/                # Next.js app router pages
@@ -220,6 +290,10 @@ stagehand_with_browser_tools/
 │   │   ├── components/         # React components
 │   │   └── utils/              # Utility functions
 │   └── ...
+│
+├── Utilities
+│   └── save-failed-requests.ts  # Failed request file saver
+│
 ├── package.json                 # Project dependencies and scripts
 ├── env.sample                   # Environment variables template
 └── README.md                    # This file

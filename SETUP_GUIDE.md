@@ -20,7 +20,7 @@ pnpm install
 ### 3. Configure environment
 Create a `.env` file in the root directory:
 ```env
-GEMINI_API_KEY=your_actual_gemini_api_key_here
+CEREBRAS_API_KEY=your_actual_cerebras_api_key_here
 ```
 
 ### 4. Start the test app
@@ -69,7 +69,7 @@ pnpm run:agent
 - Kill any process using port 3000
 - Or change the port in next-app/package.json
 
-### "GEMINI_API_KEY not found"
+### "CEREBRAS_API_KEY not found"
 - Make sure `.env` file exists in root directory
 - Verify the API key is valid
 
