@@ -1,0 +1,33 @@
+{
+  "name": "stagehand_with_browser_tools",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev:next": "cd next-app && pnpm dev",
+    "build:next": "cd next-app && pnpm build",
+    "start:next": "cd next-app && pnpm start",
+    "run:stagehand": "tsx example-usage.ts",
+    "run:agent": "tsx example-agent-usage.ts",
+    "run:flexible": "tsx example-usage-flexible.ts",
+    "run:agent-flexible": "tsx example-agent-flexible.ts",
+    "test:failed-requests": "tsx test-failed-requests.ts",
+    "test:setup": "tsx test-setup.ts",
+    "dev": "echo 'Start the Next.js app first with: pnpm dev:next' && echo 'Then in another terminal run: pnpm run:stagehand'",
+    "test": "tsx test-setup.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.12.2",
+  "dependencies": {
+    "@browserbasehq/stagehand": "^2.5.0",
+    "dotenv": "^17.2.2",
+    "playwright": "^1.55.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.4.0",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  }
+}
