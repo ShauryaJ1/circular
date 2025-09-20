@@ -33,8 +33,8 @@ async function runAgentWithBrowserTools() {
     
     // Let the agent perform complex tasks autonomously
     await agent.execute({
-      instruction: "Test the console logging functionality by clicking the Test Console button and entering a custom message 'Agent Test Message'",
-      maxSteps: 5
+      instruction: "Navigate to https://example.com and get the page title",
+      maxSteps: 3
     });
 
     // Check captured console logs
@@ -43,18 +43,18 @@ async function runAgentWithBrowserTools() {
 
     // Another agent task
     await agent.execute({
-      instruction: "Fill out the form with name 'Test User', email 'test@example.com', and message 'Hello from agent' then submit it",
-      maxSteps: 8
+      instruction: "Navigate to https://httpbin.org/get and check the response",
+      maxSteps: 3
     });
 
-    // Check network logs for form submission
-    const networkLogs = stagehand.getNetworkLogs({ urlPattern: 'api/trpc' });
-    console.log('\nNetwork Logs from Form Submission:', networkLogs);
+    // Check network logs for requests
+    const networkLogs = stagehand.getNetworkLogs();
+    console.log('\nNetwork Logs from Agent Actions:', networkLogs);
 
     // Test storage operations
     await agent.execute({
       instruction: "Set a localStorage item with key 'agentTest' and value 'successfulTest'",
-      maxSteps: 5
+      maxSteps: 3
     });
 
     const storageData = await stagehand.getStorageData();
@@ -62,7 +62,7 @@ async function runAgentWithBrowserTools() {
 
     // Test error handling
     await agent.execute({
-      instruction: "Click the 'Test Broken API' button to trigger an error",
+      instruction: "Navigate to a non-existent page to trigger an error",
       maxSteps: 3
     });
 
@@ -82,10 +82,10 @@ async function runAgentWithBrowserTools() {
     console.log(allLogs);
 
   } catch (error) {
-    console.error('Agent execution error:', error);
+    console.error('Agent execution error:', error instanceof Error ? error.message : String(error));
     
     // Additional troubleshooting for common errors
-    if (error.message?.includes('UnsupportedModelError')) {
+    if (error instanceof Error && error.message?.includes('UnsupportedModelError')) {
       console.log('\n⚠️ Model Configuration Issue:');
       console.log(`Currently using: ${providerInfo.model}`);
       console.log('Make sure your API key matches the provider you\'re trying to use.');

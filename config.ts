@@ -3,71 +3,57 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 /**
- * Configuration helper for switching between AI providers
+ * Configuration helper for Cerebras AI provider
  */
 
-export type AIProvider = 'gemini' | 'anthropic';
+export type AIProvider = 'cerebras';
 
 // Detect which provider to use based on available API keys
 export function getProvider(): AIProvider {
-  if (process.env.ANTHROPIC_API_KEY) {
-    return 'anthropic';
+  if (process.env.CEREBRAS_API_KEY) {
+    return 'cerebras';
   }
-  if (process.env.GEMINI_API_KEY) {
-    return 'gemini';
-  }
-  throw new Error('No API key found. Please set either GEMINI_API_KEY or ANTHROPIC_API_KEY in your .env file');
+  throw new Error('No API key found. Please set CEREBRAS_API_KEY in your .env file');
 }
 
 // Get configuration for Stagehand initialization
 export function getStagehandConfig() {
   const provider = getProvider();
   
-  if (provider === 'anthropic') {
+  if (provider === 'cerebras') {
     return {
-      modelName: 'claude-sonnet-4-20250514',
+      modelName: 'cerebras/llama-3.1-8b-instruct',
       modelClientOptions: {
-        apiKey: process.env.ANTHROPIC_API_KEY,
-      },
-    };
-  } else {
-    return {
-      modelName: 'google/gemini-2.5-flash',
-      modelClientOptions: {
-        apiKey: process.env.GEMINI_API_KEY,
+        apiKey: process.env.CEREBRAS_API_KEY,
       },
     };
   }
+  
+  throw new Error('Unsupported provider');
 }
 
 // Get configuration for agent
 export function getAgentConfig() {
   const provider = getProvider();
   
-  if (provider === 'anthropic') {
+  if (provider === 'cerebras') {
+    // For now, use a generic config that should work with most providers
     return {
-      provider: 'anthropic' as const,
-      model: 'claude-sonnet-4-20250514',
+      model: 'cerebras/llama-3.1-8b-instruct',
       options: {
-        apiKey: process.env.ANTHROPIC_API_KEY,
-      },
-    };
-  } else {
-    return {
-      provider: 'google' as const,
-      model: 'gemini-2.5-flash',
-      options: {
-        apiKey: process.env.GEMINI_API_KEY,
+        apiKey: process.env.CEREBRAS_API_KEY,
       },
     };
   }
+  
+  throw new Error('Unsupported provider');
 }
 
 export function getProviderInfo() {
   const provider = getProvider();
   return {
-    name: provider === 'anthropic' ? 'Anthropic Claude' : 'Google Gemini',
-    model: provider === 'anthropic' ? 'claude-sonnet-4-20250514' : 'gemini-2.5-flash',
-    envVar: provider === 'anthropic' ? 'ANTHROPIC_API_KEY' : 'GEMINI_API_KEY',
+    name: 'Cerebras',
+    model: 'cerebras/llama-3.1-8b-instruct',
+    envVar: 'CEREBRAS_API_KEY',
   };
 }
