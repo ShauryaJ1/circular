@@ -6,7 +6,7 @@ next-app/
 .env
 .env.local
 .env.production
-
+env.txt
 # Build outputs
 dist/
 build/

@@ -11,6 +11,7 @@
     "run:agent": "tsx example-agent-usage.ts",
     "run:flexible": "tsx example-usage-flexible.ts",
     "run:agent-flexible": "tsx example-agent-flexible.ts",
+    "run:database": "tsx example-database-usage.ts",
     "test:failed-requests": "tsx test-failed-requests.ts",
     "test:browser-visible": "tsx test-browser-visibility.ts",
     "test:setup": "tsx test-setup.ts",
@@ -18,7 +19,15 @@
     "agent:run": "tsx agent.ts --run",
     "agent:test": "tsx agent.ts --test",
     "dev": "echo 'Start the Next.js app first with: pnpm dev:next' && echo 'Then run: pnpm agent:run'",
-    "test": "tsx test-setup.ts"
+    "test": "tsx test-setup.ts",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:reset": "supabase db reset",
+    "setup:all": "./setup.sh"
   },
   "keywords": [],
   "author": "",
@@ -26,14 +35,27 @@
   "packageManager": "pnpm@10.12.2",
   "dependencies": {
     "@browserbasehq/stagehand": "^2.5.0",
+    "@prisma/client": "^5.22.0",
+    "@supabase/supabase-js": "^2.45.4",
+    "@huggingface/transformers": "^3.3.0",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
     "node-fetch": "^3.3.2",
-    "playwright": "^1.55.0"
+    "playwright": "^1.55.0",
+    "pg": "^8.12.0",
+    "ai": "^4.0.0",
+    "@ai-sdk/cerebras": "^0.0.1",
+    "zod": "^3.22.0",
+    "puppeteer": "^24.22.0",
+    "docx": "^9.5.1",
+    "csv-writer": "^1.6.0",
+    "axios": "^1.7.7"
   },
   "devDependencies": {
     "@types/express": "^5.0.3",
     "@types/node": "^24.4.0",
+    "@types/pg": "^8.11.10",
+    "prisma": "^5.22.0",
     "@types/node-fetch": "^2.6.13",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2"

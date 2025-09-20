@@ -10,8 +10,8 @@ export type AIProvider = 'anthropic' | 'openai' | 'cerebras';
 
 // Detect which provider to use based on available API keys
 export function getProvider(): AIProvider {
-  if (process.env.ANTHROPIC_API_KEY) {
-    return 'anthropic';
+  if (process.env.CEREBRAS_API_KEY) {
+    return 'cerebras';
   }
   if (process.env.OPENAI_API_KEY) {
     return 'openai';
@@ -26,7 +26,7 @@ export function getProvider(): AIProvider {
 export function getStagehandConfig() {
   const provider = getProvider();
   
-  if (provider === 'anthropic') {
+  if (provider === 'cerebras') {
     return {
       modelName: 'claude-3-7-sonnet-latest',
       modelClientOptions: {
@@ -60,7 +60,8 @@ export function getStagehandConfig() {
 export function getAgentConfig() {
   const provider = getProvider();
   
-  if (provider === 'anthropic') {
+  if (provider === 'cerebras') {
+    // For now, use a generic config that should work with most providers
     return {
       model: 'claude-3-7-sonnet-latest',
       options: {
