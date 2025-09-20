@@ -1,6 +1,6 @@
 import express from 'express';
 import { StagehandWithBrowserTools } from './stagehand-browser-tools';
-import { getStagehandConfig, getProviderInfo } from './config';
+import { getStagehandConfig, getProviderInfo, getAgentConfig, getProvider } from './config';
 
 const app = express();
 app.use(express.json());
@@ -49,12 +49,25 @@ async function initializeAgent() {
     });
     
     // Create the agent
+    const agentConfig = getAgentConfig();
+    const provider = getProvider();
+    
+    // Map our provider types to the expected agent provider types
+    let agentProvider: string;
+    if (provider === 'anthropic') {
+      agentProvider = 'anthropic';
+    } else if (provider === 'openai') {
+      agentProvider = 'openai';
+    } else if (provider === 'cerebras') {
+      agentProvider = 'anthropic'; // Cerebras uses Anthropic-compatible API
+    } else {
+      throw new Error(`Unsupported provider: ${provider}`);
+    }
+    
     agent = stagehand.agent({
-      provider: 'cerebras',
-      model: getProviderInfo().model,
-      options: {
-        apiKey: process.env.CEREBRAS_API_KEY,
-      },
+      provider: agentProvider as any,
+      model: agentConfig.model,
+      options: agentConfig.options,
     });
     
     isReady = true;
