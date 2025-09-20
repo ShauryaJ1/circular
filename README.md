@@ -32,13 +32,9 @@ cp env.sample .env
 # Then edit .env with your API key (choose one):
 ```
 
-**Option 1: Google Gemini** (recommended for beginners)
-- Get your API key from: https://aistudio.google.com/app/apikey
-- Set `GEMINI_API_KEY=your_key_here`
-
-**Option 2: Anthropic Claude** (more powerful agent capabilities)
-- Get your API key from: https://console.anthropic.com/
-- Set `ANTHROPIC_API_KEY=your_key_here`
+**Cerebras** (powerful and cost-effective)
+- Get your API key from: https://console.cerebras.net/
+- Set `CEREBRAS_API_KEY=your_key_here`
 
 ### 3. Verify Setup (Optional)
 Test that everything is configured correctly:
@@ -150,7 +146,7 @@ const stagehand = new StagehandWithBrowserTools({
   },
   modelName: 'google/gemini-2.5-flash',
   modelClientOptions: {
-    apiKey: process.env.GEMINI_API_KEY,
+    apiKey: process.env.CEREBRAS_API_KEY,
   },
 });
 
@@ -163,7 +159,7 @@ const stagehand = new StagehandWithBrowserTools({
   },
   modelName: 'claude-sonnet-4-20250514',
   modelClientOptions: {
-    apiKey: process.env.ANTHROPIC_API_KEY,
+    apiKey: process.env.CEREBRAS_API_KEY,
   },
 });
 
@@ -190,7 +186,7 @@ const agent = stagehand.agent({
   provider: 'google',
   model: 'gemini-2.5-flash',
   options: {
-    apiKey: process.env.GEMINI_API_KEY,
+    apiKey: process.env.CEREBRAS_API_KEY,
   }
 });
 
@@ -199,7 +195,7 @@ const agent = stagehand.agent({
   provider: 'anthropic',
   model: 'claude-sonnet-4-20250514',
   options: {
-    apiKey: process.env.ANTHROPIC_API_KEY,
+    apiKey: process.env.CEREBRAS_API_KEY,
   }
 });
 

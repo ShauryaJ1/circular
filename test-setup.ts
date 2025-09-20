@@ -1,4 +1,5 @@
 import { StagehandWithBrowserTools } from './stagehand-browser-tools';
+import { getStagehandConfig, getProviderInfo } from './config';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -10,36 +11,19 @@ async function testSetup() {
   console.log('🔧 Testing Stagehand with Browser Tools Setup...\n');
 
   // Check environment
-  const hasGemini = process.env.GEMINI_API_KEY;
-  const hasAnthropic = process.env.ANTHROPIC_API_KEY;
-  
-  if (!hasGemini && !hasAnthropic) {
+  try {
+    const providerInfo = getProviderInfo();
+    console.log(`✅ Environment variables loaded (using ${providerInfo.name})`);
+  } catch (error) {
     console.error('❌ No API key found in .env file');
-    console.log('Please create a .env file with either:');
-    console.log('  GEMINI_API_KEY=your_key_here');
-    console.log('  or');
-    console.log('  ANTHROPIC_API_KEY=your_key_here');
+    console.log('Please create a .env file with:');
+    console.log('  CEREBRAS_API_KEY=your_key_here');
     process.exit(1);
   }
-  
-  const usingProvider = hasAnthropic ? 'Anthropic Claude' : 'Google Gemini';
-  console.log(`✅ Environment variables loaded (using ${usingProvider})`);
 
   // Test Stagehand initialization
   try {
-    const modelConfig = hasAnthropic 
-      ? {
-          modelName: 'claude-sonnet-4-20250514',
-          modelClientOptions: {
-            apiKey: process.env.ANTHROPIC_API_KEY,
-          },
-        }
-      : {
-          modelName: 'google/gemini-2.5-flash',
-          modelClientOptions: {
-            apiKey: process.env.GEMINI_API_KEY,
-          },
-        };
+    const modelConfig = getStagehandConfig();
 
     const stagehand = new StagehandWithBrowserTools({
       env: 'LOCAL',
@@ -89,7 +73,7 @@ async function testSetup() {
   } catch (error) {
     console.error('❌ Test failed:', error);
     console.log('\nTroubleshooting:');
-    console.log('1. Check your API key (GEMINI_API_KEY or ANTHROPIC_API_KEY) is valid');
+    console.log('1. Check your API key (CEREBRAS_API_KEY) is valid');
     console.log('2. Ensure Chrome/Chromium is installed');
     console.log('3. Run: pnpm install');
     process.exit(1);
