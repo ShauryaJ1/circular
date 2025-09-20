@@ -1,50 +1,46 @@
 import React from 'react'
-import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { BellIcon, UserCircleIcon } from '@heroicons/react/24/outline'
 
 export function Header() {
   return (
-    <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+      <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <div className="flex items-center">
-            <Link href="/" className="flex items-center">
-              <div className="text-xl font-bold text-gray-900 dark:text-white">
-                Circular
+          {/* Left side - only show on mobile since sidebar has logo on desktop */}
+          <div className="flex items-center md:hidden">
+            <div className="flex items-center">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-lg">C</span>
               </div>
-            </Link>
+              <span className="ml-3 text-xl font-semibold text-gray-900 dark:text-white">
+                Circular
+              </span>
+            </div>
           </div>
           
-          <nav className="hidden md:flex space-x-8">
-            <Link
-              href="/"
-              className="text-gray-900 dark:text-white hover:text-gray-700 dark:hover:text-gray-300 px-3 py-2 rounded-md text-sm font-medium"
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/logs"
-              className="text-gray-900 dark:text-white hover:text-gray-700 dark:hover:text-gray-300 px-3 py-2 rounded-md text-sm font-medium"
-            >
-              Logs
-            </Link>
-            <Link
-              href="/runs"
-              className="text-gray-900 dark:text-white hover:text-gray-700 dark:hover:text-gray-300 px-3 py-2 rounded-md text-sm font-medium"
-            >
-              Runs
-            </Link>
-            <Link
-              href="/solutions"
-              className="text-gray-900 dark:text-white hover:text-gray-700 dark:hover:text-gray-300 px-3 py-2 rounded-md text-sm font-medium"
-            >
-              Solutions
-            </Link>
-          </nav>
+          {/* Center - Search or breadcrumb could go here */}
+          <div className="flex-1 flex justify-center md:justify-start md:ml-0">
+            {/* This space can be used for search or breadcrumbs */}
+          </div>
 
-          <div className="flex items-center space-x-4">
-            <Button variant="outline" size="sm">
-              Settings
+          {/* Right side - User actions */}
+          <div className="flex items-center space-x-3">
+            {/* Environment indicator */}
+            <div className="hidden sm:flex items-center">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
+                Development
+              </span>
+            </div>
+            
+            {/* Notifications */}
+            <Button variant="ghost" size="sm" className="p-2">
+              <BellIcon className="h-5 w-5" />
+            </Button>
+            
+            {/* User menu */}
+            <Button variant="ghost" size="sm" className="p-2">
+              <UserCircleIcon className="h-5 w-5" />
             </Button>
           </div>
         </div>

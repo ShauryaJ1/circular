@@ -8,8 +8,6 @@ import {
   DocumentTextIcon,
   PlayIcon,
   LightBulbIcon,
-  RectangleStackIcon,
-  ChartBarIcon,
 } from '@heroicons/react/24/outline'
 
 const navigation = [
@@ -17,8 +15,6 @@ const navigation = [
   { name: 'Logs', href: '/logs', icon: DocumentTextIcon },
   { name: 'Runs', href: '/runs', icon: PlayIcon },
   { name: 'Solutions', href: '/solutions', icon: LightBulbIcon },
-  { name: 'Tasks', href: '/tasks', icon: RectangleStackIcon },
-  { name: 'Analytics', href: '/analytics', icon: ChartBarIcon },
 ]
 
 export function Sidebar() {

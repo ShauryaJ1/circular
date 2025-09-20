@@ -1,5 +1,4 @@
 import React from 'react'
-import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { StatusBadge } from '@/components/ui/status-badge'
@@ -21,12 +20,7 @@ export function RunList({ runs }: RunListProps) {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <CardTitle className="text-lg">
-                    <Link 
-                      href={`/runs/${run.id}`}
-                      className="hover:text-blue-600 dark:hover:text-blue-400"
-                    >
-                      Run {run.id.substring(0, 8)}
-                    </Link>
+                    Run {run.id.substring(0, 8)}
                   </CardTitle>
                   <StatusBadge status={run.status} />
                 </div>

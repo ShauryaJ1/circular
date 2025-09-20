@@ -100,12 +100,9 @@ export default function Home() {
                     <StatusBadge status={run.status} />
                     <div>
                       <div className="font-medium">
-                        <Link 
-                          href={`/runs/${run.id}`}
-                          className="hover:text-blue-600 dark:hover:text-blue-400"
-                        >
+                        <span className="text-gray-900 dark:text-white">
                           Run {run.id.substring(0, 8)}
-                        </Link>
+                        </span>
                       </div>
                       <div className="text-sm text-muted-foreground">
                         Task: {run.taskId}
