@@ -85,12 +85,12 @@ prompt_for_api_key() {
     fi
     
     # If key is empty or placeholder, prompt user
-    if [ -z "$key_value" ] || [ "$key_value" = "your_${key_name,,}_api_key_here" ] || [ "$key_value" = "your_${key_name,,}_key_here" ]; then
+    if [ -z "$key_value" ] || [ "$key_value" = "your_cerebras_api_key_here" ] || [ "$key_value" = "your_anthropic_api_key_here" ] || [ "$key_value" = "your_openai_api_key_here" ]; then
         echo -e "${YELLOW}⚠️  ${key_name} not found or invalid${NC}"
         echo -e "${BLUE}Please enter your ${key_name} (input will be hidden):${NC}"
         read -rs key_value
         
-        if [  -n "$key_value" ]; then
+        if [ -n "$key_value" ]; then
             # Update .env file
             if [ -f "$SCRIPT_DIR/.env" ]; then
                 # Update existing line or add new one
@@ -112,8 +112,7 @@ prompt_for_api_key() {
     
     export "${key_name}=${key_value}"
 }
-
-# Load environment variables from .env if it exists FIRST
+# Load environment variables from .env if it exists
 if [ -f "$SCRIPT_DIR/.env" ]; then
     export $(grep -v '^#' "$SCRIPT_DIR/.env" | xargs)
 fi
@@ -121,10 +120,20 @@ fi
 # Check and prompt for API keys
 echo -e "${BLUE}🔑 Checking API keys...${NC}"
 
-# Check for Cerebras API key
-if [ -z "$CEREBRAS_API_KEY" ]; then
-    echo -e "${YELLOW}No Cerebras API key found.${NC}"
-    prompt_for_api_key "CEREBRAS_API_KEY"
+# Check for API keys (prioritize Anthropic, then OpenAI, then Cerebras)
+if [ -n "$ANTHROPIC_API_KEY" ] && [ "$ANTHROPIC_API_KEY" != "your_anthropic_api_key_here" ]; then
+    echo -e "${GREEN}✅ Anthropic API key found${NC}"
+elif [ -n "$OPENAI_API_KEY" ] && [ "$OPENAI_API_KEY" != "your_openai_api_key_here" ]; then
+    echo -e "${GREEN}✅ OpenAI API key found${NC}"
+elif [ -n "$CEREBRAS_API_KEY" ] && [ "$CEREBRAS_API_KEY" != "your_cerebras_api_key_here" ]; then
+    echo -e "${GREEN}✅ Cerebras API key found${NC}"
+else
+    echo -e "${YELLOW}No valid API key found.${NC}"
+    echo -e "${BLUE}Please set one of the following in your .env file:${NC}"
+    echo -e "  ANTHROPIC_API_KEY=your_key_here (recommended)"
+    echo -e "  OPENAI_API_KEY=your_key_here"
+    echo -e "  CEREBRAS_API_KEY=your_key_here (limited computer use support)"
+    exit 1
 fi
 
 # Parse command
