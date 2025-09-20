@@ -31,7 +31,7 @@ export default function RunDetailPage({ params }: RunDetailPageProps) {
             Run Not Found
           </h2>
           <p className="text-muted-foreground mb-4">
-            The run with ID "{id}" could not be found.
+            The run with ID &ldquo;{id}&rdquo; could not be found.
           </p>
           <Link
             href="/runs"

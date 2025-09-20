@@ -1,4 +1,5 @@
 import { Task, TaskRun, Solution, DashboardStats, BrowserLog, NetworkLog, LogEntry } from '@/types'
+import { LogLevel } from './database'
 
 // Mock data for development and demonstration
 export const mockTasks: Task[] = [
@@ -71,7 +72,7 @@ export const mockRuns: TaskRun[] = [
       {
         id: 'log-1',
         runId: 'run-1',
-        level: 'info',
+        level: LogLevel.INFO,
         message: 'Starting login flow test',
         timestamp: new Date('2024-01-15T14:25:00Z'),
         tags: ['authentication', 'test-start'],
@@ -79,7 +80,7 @@ export const mockRuns: TaskRun[] = [
       {
         id: 'log-2',
         runId: 'run-1',
-        level: 'info',
+        level: LogLevel.INFO,
         message: 'Navigating to login page',
         timestamp: new Date('2024-01-15T14:25:15Z'),
         tags: ['navigation', 'login-page'],
@@ -87,7 +88,7 @@ export const mockRuns: TaskRun[] = [
       {
         id: 'log-3',
         runId: 'run-1',
-        level: 'info',
+        level: LogLevel.INFO,
         message: 'Filling login form with test credentials',
         timestamp: new Date('2024-01-15T14:26:00Z'),
         tags: ['form-filling', 'credentials'],
@@ -95,7 +96,7 @@ export const mockRuns: TaskRun[] = [
       {
         id: 'log-4',
         runId: 'run-1',
-        level: 'info',
+        level: LogLevel.INFO,
         message: 'Login successful, redirected to dashboard',
         timestamp: new Date('2024-01-15T14:28:30Z'),
         tags: ['success', 'redirect', 'dashboard'],
@@ -149,7 +150,7 @@ export const mockRuns: TaskRun[] = [
       {
         id: 'log-5',
         runId: 'run-2',
-        level: 'info',
+        level: LogLevel.INFO,
         message: 'Starting checkout flow test',
         timestamp: new Date('2024-01-15T11:45:00Z'),
         tags: ['checkout', 'test-start', 'e-commerce'],
@@ -157,7 +158,7 @@ export const mockRuns: TaskRun[] = [
       {
         id: 'log-6',
         runId: 'run-2',
-        level: 'info',
+        level: LogLevel.INFO,
         message: 'Adding items to cart',
         timestamp: new Date('2024-01-15T11:46:00Z'),
         tags: ['cart', 'items', 'shopping'],
@@ -165,14 +166,17 @@ export const mockRuns: TaskRun[] = [
       {
         id: 'log-7',
         runId: 'run-2',
-        level: 'warn',
+        level: LogLevel.WARN,
         message: 'Payment gateway taking longer than expected',
         timestamp: new Date('2024-01-15T11:50:00Z'),
         tags: ['payment', 'timeout', 'performance'],
         issue: {
           id: 'issue-1',
           title: 'Payment Gateway Timeout',
+          description: 'Payment gateway response time exceeded threshold during checkout',
           fullText: 'During the checkout flow test, the payment gateway response time exceeded the expected threshold of 5 seconds. This could indicate network latency, payment provider issues, or insufficient server resources. The delay occurred when processing a standard credit card transaction with valid test credentials. Browser console shows no JavaScript errors, but network tab indicates slow response from payment API endpoint.',
+          severity: 'high' as const,
+          category: 'performance' as const,
           tags: ['payment', 'timeout', 'performance', 'api'],
           detectedAt: new Date('2024-01-15T11:50:00Z'),
           context: {
@@ -188,26 +192,49 @@ export const mockRuns: TaskRun[] = [
           id: 'solution-1',
           issueId: 'issue-1',
           title: 'Implement Payment Retry with Exponential Backoff',
+          description: 'Comprehensive solution for payment timeout issues',
           fullText: 'To resolve the payment gateway timeout issue, we implemented a comprehensive solution involving retry logic, user feedback, and timeout handling. The solution includes: 1) Exponential backoff retry mechanism for failed/slow requests, 2) Loading indicators and progress feedback for users, 3) Fallback payment methods when primary gateway is slow, 4) Improved error handling and user messaging, 5) Monitoring and alerting for payment gateway performance.',
+          solutionType: 'fix' as const,
           tags: ['retry-logic', 'user-feedback', 'error-handling', 'monitoring'],
           appliedAt: new Date('2024-01-15T12:15:00Z'),
           effectiveness: 85,
-          context: {
-            steps: [
-              'Add retry mechanism with exponential backoff',
-              'Improve user feedback with loading indicators', 
-              'Add fallback payment methods',
-              'Implement proper error handling',
-              'Set up monitoring and alerts'
-            ],
-            codeChanges: {
-              'src/components/PaymentForm.tsx': {
-                description: 'Added exponential backoff retry logic',
-                before: 'const processPayment = async (paymentData) => {\n  return await paymentAPI.process(paymentData);\n}',
-                after: 'const processPayment = async (paymentData, retryCount = 0) => {\n  try {\n    return await paymentAPI.process(paymentData);\n  } catch (error) {\n    if (retryCount < 3) {\n      await delay(Math.pow(2, retryCount) * 1000);\n      return processPayment(paymentData, retryCount + 1);\n    }\n    throw error;\n  }\n}'
-              }
+          steps: [
+            {
+              id: 'step-1',
+              order: 1,
+              title: 'Add retry mechanism with exponential backoff',
+              description: 'Implement exponential backoff retry logic for payment requests',
+              action: 'Update PaymentForm component',
+              expected: 'Failed payments retry automatically with increasing delays',
+              completed: true,
+              timestamp: new Date('2024-01-15T12:00:00Z')
             },
-            verification: 'Automated test with simulated slow payment gateway - achieved 95% success rate'
+            {
+              id: 'step-2', 
+              order: 2,
+              title: 'Improve user feedback with loading indicators',
+              description: 'Add loading states and progress indicators',
+              action: 'Update UI components',
+              expected: 'Users see clear feedback during payment processing',
+              completed: true,
+              timestamp: new Date('2024-01-15T12:05:00Z')
+            }
+          ],
+          codeChanges: [
+            {
+              id: 'change-1',
+              file: 'src/components/PaymentForm.tsx',
+              changeType: 'modify' as const,
+              description: 'Added exponential backoff retry logic',
+              before: 'const processPayment = async (paymentData) => {\n  return await paymentAPI.process(paymentData);\n}',
+              after: 'const processPayment = async (paymentData, retryCount = 0) => {\n  try {\n    return await paymentAPI.process(paymentData);\n  } catch (error) {\n    if (retryCount < 3) {\n      await delay(Math.pow(2, retryCount) * 1000);\n      return processPayment(paymentData, retryCount + 1);\n    }\n    throw error;\n  }\n}',
+              lineNumbers: { start: 45, end: 47 }
+            }
+          ],
+          verification: {
+            method: 'Automated testing',
+            criteria: 'Payment success rate > 95% with simulated slow gateway',
+            result: 'success' as const
           }
         }
       },
@@ -250,7 +277,7 @@ export const mockRuns: TaskRun[] = [
       {
         id: 'log-8',
         runId: 'run-3',
-        level: 'info',
+        level: LogLevel.INFO,
         message: 'Starting API integration test',
         timestamp: new Date('2024-01-15T09:05:00Z'),
         tags: ['api', 'integration', 'test-start'],
@@ -258,7 +285,7 @@ export const mockRuns: TaskRun[] = [
       {
         id: 'log-9',
         runId: 'run-3',
-        level: 'error',
+        level: LogLevel.ERROR,
         message: 'API request failed with 500 error',
         timestamp: new Date('2024-01-15T09:08:00Z'),
         metadata: { endpoint: '/api/users', statusCode: 500 },
@@ -266,7 +293,10 @@ export const mockRuns: TaskRun[] = [
         issue: {
           id: 'issue-2',
           title: 'API Server Internal Error',
+          description: 'API endpoint returning 500 errors during integration testing',
           fullText: 'The /api/users endpoint is consistently returning HTTP 500 Internal Server Error responses during integration testing. This appears to be a server-side issue affecting user data retrieval functionality. The error occurs when making GET requests to fetch user profile information. Server logs indicate a database connection timeout, suggesting the issue may be related to database performance or connection pool exhaustion. No client-side JavaScript errors are present, and the request headers and payload are correctly formatted.',
+          severity: 'critical' as const,
+          category: 'network' as const,
           tags: ['api', 'server-error', 'database', 'timeout'],
           detectedAt: new Date('2024-01-15T09:08:00Z'),
           context: {
@@ -281,19 +311,38 @@ export const mockRuns: TaskRun[] = [
           id: 'solution-2',
           issueId: 'issue-2',
           title: 'Database Connection Pool Optimization',
+          description: 'Comprehensive database optimization to resolve API 500 errors',
           fullText: 'To resolve the API 500 errors, we implemented a comprehensive database connection optimization strategy. The solution involved: 1) Increasing database connection pool size and timeout settings, 2) Adding connection health checks and automatic reconnection logic, 3) Implementing proper error handling and fallback responses, 4) Adding database query optimization and indexing, 5) Setting up monitoring and alerting for database performance metrics.',
+          solutionType: 'configuration' as const,
           tags: ['database', 'connection-pool', 'error-handling', 'monitoring'],
           appliedAt: new Date('2024-01-15T10:30:00Z'),
           effectiveness: 92,
-          context: {
-            steps: [
-              'Optimize connection pool size and timeout settings',
-              'Add connection health checks and reconnection logic',
-              'Implement proper error handling and fallback responses',
-              'Add database query optimization and indexing',
-              'Set up monitoring and alerting for database performance'
-            ],
-            verification: 'Load testing with 100 concurrent API requests - achieved 99% success rate'
+          steps: [
+            {
+              id: 'step-3',
+              order: 1,
+              title: 'Optimize connection pool size and timeout settings',
+              description: 'Increase database connection pool configuration',
+              action: 'Update database configuration',
+              expected: 'Reduced connection timeout errors',
+              completed: true,
+              timestamp: new Date('2024-01-15T10:00:00Z')
+            },
+            {
+              id: 'step-4',
+              order: 2,
+              title: 'Add connection health checks and reconnection logic',
+              description: 'Implement automatic connection recovery',
+              action: 'Update database service layer',
+              expected: 'Automatic recovery from connection failures',
+              completed: true,
+              timestamp: new Date('2024-01-15T10:15:00Z')
+            }
+          ],
+          verification: {
+            method: 'Load testing',
+            criteria: '100 concurrent API requests with 99% success rate',
+            result: 'success' as const
           }
         }
       },

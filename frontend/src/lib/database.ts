@@ -1,6 +1,8 @@
 import { prisma } from './prisma'
 import { LogLevel } from '@prisma/client'
 
+export { LogLevel }
+
 export interface CreateLogEntryData {
   level: LogLevel
   message: string
@@ -18,13 +20,13 @@ export interface LogEntryWithSolution {
   message: string
   timestamp: Date
   tags: { name: string }[]
-  solution?: {
+  solution: {
     id: string
     issueText: string
     solutionText: string
     createdAt: Date
     tags: { name: string }[]
-  }
+  } | null
 }
 
 export class DatabaseService {

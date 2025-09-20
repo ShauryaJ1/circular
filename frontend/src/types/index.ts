@@ -2,7 +2,8 @@ export type TaskStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cance
 
 export type RunStatus = 'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
 
-export type LogLevel = 'log' | 'info' | 'warn' | 'error' | 'debug';
+import { LogLevel } from '@/lib/database'
+export { LogLevel }
 
 export interface Task {
   id: string;
