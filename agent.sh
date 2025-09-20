@@ -23,11 +23,23 @@ show_help() {
     echo "Commands:"
     echo "  --run           Start the agent server with browser"
     echo "  --test          Send test command to running agent"
+    echo "  --store         Store a log entry with embeddings"
+    echo "  --retrieve      Search and retrieve logs"
     echo "  --help          Show this help message"
     echo ""
     echo "Test Options:"
     echo "  -context <text> Optional context to add to the test"
     echo "  <instruction>   The instruction for the agent to execute"
+    echo ""
+    echo "Store Options:"
+    echo "  --issue <text>  Issue description (required)"
+    echo "  --solve <text>  Solution description (optional)"
+    echo "  --tags <tag1> <tag2> ...  Tags for categorization"
+    echo ""
+    echo "Retrieve Options:"
+    echo "  --input <text>  Search query for semantic search"
+    echo "  --tags <tag1> <tag2> ...  Search by tags"
+    echo "  --limit <num>   Maximum results (default: 5)"
     echo ""
     echo "Examples:"
     echo "  # Start the agent server"
@@ -36,6 +48,13 @@ show_help() {
     echo "  # Send test commands"
     echo "  ./agent.sh --test \"Click the Test Console button\""
     echo "  ./agent.sh --test -context \"Testing forms\" \"Fill the form\""
+    echo ""
+    echo "  # Store a log entry"
+    echo "  ./agent.sh --store --issue \"API returns 500 error\" --solve \"Fixed DB connection\" --tags bug api"
+    echo ""
+    echo "  # Retrieve logs"
+    echo "  ./agent.sh --retrieve --input \"database errors\""
+    echo "  ./agent.sh --retrieve --tags bug database --limit 10"
 }
 
 # Check if tsx is installed
@@ -71,7 +90,7 @@ prompt_for_api_key() {
         echo -e "${BLUE}Please enter your ${key_name} (input will be hidden):${NC}"
         read -rs key_value
         
-        if [ -n "$key_value" ]; then
+        if [  -n "$key_value" ]; then
             # Update .env file
             if [ -f "$SCRIPT_DIR/.env" ]; then
                 # Update existing line or add new one
@@ -94,6 +113,11 @@ prompt_for_api_key() {
     export "${key_name}=${key_value}"
 }
 
+# Load environment variables from .env if it exists FIRST
+if [ -f "$SCRIPT_DIR/.env" ]; then
+    export $(grep -v '^#' "$SCRIPT_DIR/.env" | xargs)
+fi
+
 # Check and prompt for API keys
 echo -e "${BLUE}🔑 Checking API keys...${NC}"
 
@@ -101,11 +125,6 @@ echo -e "${BLUE}🔑 Checking API keys...${NC}"
 if [ -z "$CEREBRAS_API_KEY" ]; then
     echo -e "${YELLOW}No Cerebras API key found.${NC}"
     prompt_for_api_key "CEREBRAS_API_KEY"
-fi
-
-# Load environment variables from .env if it exists
-if [ -f "$SCRIPT_DIR/.env" ]; then
-    export $(grep -v '^#' "$SCRIPT_DIR/.env" | xargs)
 fi
 
 # Parse command
@@ -120,6 +139,18 @@ case "$1" in
     --test|-t)
         shift # Remove --test from arguments
         cd "$SCRIPT_DIR" && tsx agent-client.ts "$@"
+        ;;
+        
+    --store|-s)
+        shift # Remove --store from arguments
+        echo -e "${GREEN}📝 Storing log entry...${NC}"
+        cd "$SCRIPT_DIR" && tsx agent-store.ts "$@"
+        ;;
+        
+    --retrieve|--search|-g)
+        shift # Remove --retrieve from arguments
+        echo -e "${BLUE}🔍 Retrieving logs...${NC}"
+        cd "$SCRIPT_DIR" && tsx agent-retrieve.ts "$@"
         ;;
         
     --help|-h|"")
