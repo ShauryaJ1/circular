@@ -15,12 +15,14 @@ model LogEntry {
   level     LogLevel @default(INFO)
   message   String
   timestamp DateTime @default(now())
+  embeddings Unsupported("vector(1536)")? // pg-vectors with dimension 1536
   
   // Relations
   tags      LogTag[]
   solution  Solution?
   
   @@map("log_entries")
+  @@index([embeddings]) // pg-vectors index
 }
 
 model Solution {

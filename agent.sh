@@ -55,6 +55,54 @@ if [ ! -d "$SCRIPT_DIR/node_modules" ]; then
     exit 1
 fi
 
+# Function to prompt for API key
+prompt_for_api_key() {
+    local key_name=$1
+    local key_value=""
+    
+    # Check if key exists in .env
+    if [ -f "$SCRIPT_DIR/.env" ]; then
+        key_value=$(grep "^${key_name}=" "$SCRIPT_DIR/.env" | cut -d'=' -f2- | tr -d '"' | tr -d "'")
+    fi
+    
+    # If key is empty or placeholder, prompt user
+    if [ -z "$key_value" ] || [ "$key_value" = "your_${key_name,,}_api_key_here" ] || [ "$key_value" = "your_${key_name,,}_key_here" ]; then
+        echo -e "${YELLOW}⚠️  ${key_name} not found or invalid${NC}"
+        echo -e "${BLUE}Please enter your ${key_name} (input will be hidden):${NC}"
+        read -rs key_value
+        
+        if [ -n "$key_value" ]; then
+            # Update .env file
+            if [ -f "$SCRIPT_DIR/.env" ]; then
+                # Update existing line or add new one
+                if grep -q "^${key_name}=" "$SCRIPT_DIR/.env"; then
+                    sed -i.bak "s/^${key_name}=.*/${key_name}=${key_value}/" "$SCRIPT_DIR/.env"
+                else
+                    echo "${key_name}=${key_value}" >> "$SCRIPT_DIR/.env"
+                fi
+            else
+                # Create .env file
+                echo "${key_name}=${key_value}" > "$SCRIPT_DIR/.env"
+            fi
+            echo -e "${GREEN}✅ ${key_name} saved to .env${NC}"
+        else
+            echo -e "${RED}❌ No API key provided${NC}"
+            exit 1
+        fi
+    fi
+    
+    export "${key_name}=${key_value}"
+}
+
+# Check and prompt for API keys
+echo -e "${BLUE}🔑 Checking API keys...${NC}"
+
+# Check for Cerebras API key
+if [ -z "$CEREBRAS_API_KEY" ]; then
+    echo -e "${YELLOW}No Cerebras API key found.${NC}"
+    prompt_for_api_key "CEREBRAS_API_KEY"
+fi
+
 # Load environment variables from .env if it exists
 if [ -f "$SCRIPT_DIR/.env" ]; then
     export $(grep -v '^#' "$SCRIPT_DIR/.env" | xargs)

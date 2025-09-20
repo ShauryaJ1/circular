@@ -50,37 +50,19 @@ prompt_api_keys() {
         fi
     }
     
-    # Prompt for Cerebras API key
+    # Prompt for Cerebras API key (securely)
     echo ""
-    read -p "Enter your CEREBRAS_API_KEY: " cerebras_key
+    echo -e "${YELLOW}⚠️  Cerebras API key is required${NC}"
+    echo -e "${BLUE}Please enter your CEREBRAS_API_KEY (input will be hidden):${NC}"
+    read -rs cerebras_key
     if [ ! -z "$cerebras_key" ]; then
         update_env "CEREBRAS_API_KEY" "$cerebras_key"
         print_success "Cerebras API key set"
     else
-        print_warning "Cerebras API key not set, you can set this later in .env"
+        print_error "Cerebras API key is required. Please run setup again."
+        exit 1
     fi
     
-    # Prompt for OpenAI API key (for embeddings)
-    echo ""
-    read -p "Enter your OPENAI_API_KEY (for embeddings): " openai_key
-    if [ ! -z "$openai_key" ]; then
-        update_env "OPENAI_API_KEY" "$openai_key"
-        print_success "OpenAI API key set"
-    else
-        print_warning "OpenAI API key not set - embeddings will not work"
-    fi
-    
-    # Prompt for Browserbase API key (optional)
-    echo ""
-    read -p "Enter your BROWSERBASE_API_KEY (optional): " browserbase_key
-    if [ ! -z "$browserbase_key" ]; then
-        update_env "BROWSERBASE_API_KEY" "$browserbase_key"
-        read -p "Enter your BROWSERBASE_PROJECT_ID: " browserbase_project
-        if [ ! -z "$browserbase_project" ]; then
-            update_env "BROWSERBASE_PROJECT_ID" "$browserbase_project"
-        fi
-        print_success "Browserbase credentials set"
-    fi
     
     # Clean up backup file
     rm -f .env.bak

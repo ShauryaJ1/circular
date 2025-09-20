@@ -24,9 +24,61 @@ if not exist "%SCRIPT_DIR%node_modules" (
     exit /b 1
 )
 
-REM Load environment variables from .env if it exists
+REM Function to prompt for API key securely
+:prompt_api_key
+set key_name=%1
+set key_value=
+
+REM Check if key exists in .env
+if exist "%SCRIPT_DIR%.env" (
+    for /f "tokens=2 delims==" %%a in ('findstr /b "%key_name%=" "%SCRIPT_DIR%.env"') do set key_value=%%a
+)
+
+REM Remove quotes if present
+set key_value=%key_value:"=%
+set key_value=%key_value:'=%
+
+REM Check if key is empty or placeholder
+if "%key_value%"=="" goto :ask_key
+if "%key_value%"=="your_%key_name:~0,-8%_api_key_here" goto :ask_key
+if "%key_value%"=="your_%key_name:~0,-8%_key_here" goto :ask_key
+goto :key_done
+
+:ask_key
+echo ⚠️  %key_name% not found or invalid
+echo Please enter your %key_name% (input will be hidden):
+set /p key_value=
+if "%key_value%"=="" (
+    echo ❌ No API key provided
+    exit /b 1
+)
+
+REM Update .env file
+if exist "%SCRIPT_DIR%.env" (
+    findstr /v /b "%key_name%=" "%SCRIPT_DIR%.env" > "%SCRIPT_DIR%.env.tmp"
+    echo %key_name%=%key_value% >> "%SCRIPT_DIR%.env.tmp"
+    move "%SCRIPT_DIR%.env.tmp" "%SCRIPT_DIR%.env"
+) else (
+    echo %key_name%=%key_value% > "%SCRIPT_DIR%.env"
+)
+echo ✅ %key_name% saved to .env
+
+:key_done
+set %key_name%=%key_value%
+goto :eof
+
+REM Check and prompt for API keys
+echo 🔑 Checking API keys...
+
+REM Check for existing API keys
 if exist "%SCRIPT_DIR%.env" (
     for /f "delims=" %%i in ('type "%SCRIPT_DIR%.env" ^| findstr /v "^#"') do set %%i
+)
+
+REM If no API keys found, prompt user
+if "%CEREBRAS_API_KEY%"=="" (
+    echo No Cerebras API key found.
+    call :prompt_api_key CEREBRAS_API_KEY
 )
 
 REM Check first argument
