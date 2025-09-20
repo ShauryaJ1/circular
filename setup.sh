@@ -122,8 +122,10 @@ setup_supabase() {
     
     # Get the database URL and update .env
     if [ -f .env ]; then
-        # Extract database URL from Supabase status
-        db_url=$(supabase status | grep "DB URL" | awk '{print $3}')
+        print_status "Extracting Supabase configuration..."
+        
+        # Extract database URL from Supabase status (format: "DB URL: postgresql://...")
+        db_url=$(supabase status | grep "DB URL:" | sed 's/.*DB URL: //')
         if [ ! -z "$db_url" ]; then
             if grep -q "^DATABASE_URL=" .env; then
                 sed -i.bak "s|^DATABASE_URL=.*|DATABASE_URL=${db_url}|" .env
@@ -131,11 +133,13 @@ setup_supabase() {
                 echo "DATABASE_URL=${db_url}" >> .env
             fi
             print_success "Database URL updated in .env"
+        else
+            print_warning "Could not extract database URL from Supabase status"
         fi
         
         # Extract Supabase keys and update .env
-        anon_key=$(supabase status | grep "anon key" | awk '{print $3}')
-        service_key=$(supabase status | grep "service_role key" | awk '{print $3}')
+        anon_key=$(supabase status | grep "anon key:" | sed 's/.*anon key: //')
+        service_key=$(supabase status | grep "service_role key:" | sed 's/.*service_role key: //')
         
         if [ ! -z "$anon_key" ]; then
             if grep -q "^SUPABASE_ANON_KEY=" .env; then
@@ -143,6 +147,9 @@ setup_supabase() {
             else
                 echo "SUPABASE_ANON_KEY=${anon_key}" >> .env
             fi
+            print_success "Supabase anon key updated in .env"
+        else
+            print_warning "Could not extract anon key from Supabase status"
         fi
         
         if [ ! -z "$service_key" ]; then
@@ -151,6 +158,20 @@ setup_supabase() {
             else
                 echo "SUPABASE_SERVICE_ROLE_KEY=${service_key}" >> .env
             fi
+            print_success "Supabase service role key updated in .env"
+        else
+            print_warning "Could not extract service role key from Supabase status"
+        fi
+        
+        # Also extract and set SUPABASE_URL
+        supabase_url=$(supabase status | grep "API URL:" | sed 's/.*API URL: //')
+        if [ ! -z "$supabase_url" ]; then
+            if grep -q "^SUPABASE_URL=" .env; then
+                sed -i.bak "s|^SUPABASE_URL=.*|SUPABASE_URL=${supabase_url}|" .env
+            else
+                echo "SUPABASE_URL=${supabase_url}" >> .env
+            fi
+            print_success "Supabase URL updated in .env"
         fi
         
         # Clean up backup file
@@ -158,6 +179,45 @@ setup_supabase() {
     fi
     
     print_success "Supabase setup complete"
+}
+
+# Function to verify environment variables
+verify_env_vars() {
+    print_status "Verifying environment variables..."
+    
+    local missing_vars=()
+    
+    # Check required variables
+    if [ -z "$CEREBRAS_API_KEY" ]; then
+        missing_vars+=("CEREBRAS_API_KEY")
+    fi
+    
+    if [ -z "$DATABASE_URL" ]; then
+        missing_vars+=("DATABASE_URL")
+    fi
+    
+    if [ -z "$SUPABASE_URL" ]; then
+        missing_vars+=("SUPABASE_URL")
+    fi
+    
+    if [ -z "$SUPABASE_ANON_KEY" ]; then
+        missing_vars+=("SUPABASE_ANON_KEY")
+    fi
+    
+    if [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+        missing_vars+=("SUPABASE_SERVICE_ROLE_KEY")
+    fi
+    
+    if [ ${#missing_vars[@]} -eq 0 ]; then
+        print_success "All required environment variables are set"
+        return 0
+    else
+        print_error "Missing required environment variables:"
+        for var in "${missing_vars[@]}"; do
+            echo "  - $var"
+        done
+        return 1
+    fi
 }
 
 # Function to setup database
@@ -292,6 +352,13 @@ main() {
             setup_supabase
             setup_database
             setup_nextjs
+            
+            # Load environment variables and verify
+            if [ -f .env ]; then
+                export $(grep -v '^#' .env | xargs)
+            fi
+            verify_env_vars
+            
             print_success "Setup complete! Run './setup.sh start' to start all services"
             ;;
         "start")
@@ -312,8 +379,15 @@ main() {
             print_status "Checking service status..."
             supabase status
             ;;
+        "env")
+            print_status "Checking environment variables..."
+            if [ -f .env ]; then
+                export $(grep -v '^#' .env | xargs)
+            fi
+            verify_env_vars
+            ;;
         *)
-            echo "Usage: $0 {setup|start|stop|reset|status}"
+            echo "Usage: $0 {setup|start|stop|reset|status|env}"
             echo ""
             echo "Commands:"
             echo "  setup  - Initial setup (install deps, configure API keys, setup Supabase)"
@@ -321,6 +395,7 @@ main() {
             echo "  stop   - Stop all services"
             echo "  reset  - Reset database and re-run migrations"
             echo "  status - Show service status"
+            echo "  env    - Check environment variables"
             exit 1
             ;;
     esac
