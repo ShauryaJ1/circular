@@ -5,7 +5,11 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+CYAN='\033[0;36m'
 NC='\033[0m' # No Color
+
+# Embedding model for Ollama
+EMBEDDING_MODEL="embeddinggemma:300m"
 
 # Function to print colored output
 print_status() {
@@ -50,36 +54,40 @@ prompt_api_keys() {
         fi
     }
     
-    # Prompt for Cerebras API key
-    echo ""
-    read -p "Enter your CEREBRAS_API_KEY: " cerebras_key
-    if [ ! -z "$cerebras_key" ]; then
-        update_env "CEREBRAS_API_KEY" "$cerebras_key"
-        print_success "Cerebras API key set"
+    # Check if CEREBRAS_API_KEY already exists and is not placeholder
+    if grep -q "^CEREBRAS_API_KEY=" .env && ! grep -q "^CEREBRAS_API_KEY=your_cerebras_api_key_here" .env && ! grep -q "^CEREBRAS_API_KEY=$" .env; then
+        print_success "Cerebras API key already configured"
     else
-        print_warning "Cerebras API key not set, you can set this later in .env"
-    fi
-    
-    # Prompt for OpenAI API key (for embeddings)
-    echo ""
-    read -p "Enter your OPENAI_API_KEY (for embeddings): " openai_key
-    if [ ! -z "$openai_key" ]; then
-        update_env "OPENAI_API_KEY" "$openai_key"
-        print_success "OpenAI API key set"
-    else
-        print_warning "OpenAI API key not set - embeddings will not work"
-    fi
-    
-    # Prompt for Browserbase API key (optional)
-    echo ""
-    read -p "Enter your BROWSERBASE_API_KEY (optional): " browserbase_key
-    if [ ! -z "$browserbase_key" ]; then
-        update_env "BROWSERBASE_API_KEY" "$browserbase_key"
-        read -p "Enter your BROWSERBASE_PROJECT_ID: " browserbase_project
-        if [ ! -z "$browserbase_project" ]; then
-            update_env "BROWSERBASE_PROJECT_ID" "$browserbase_project"
+        # Prompt for Cerebras API key (securely)
+        echo ""
+        echo -e "${YELLOW}⚠️  Cerebras API key is required${NC}"
+        echo -e "${BLUE}Please enter your CEREBRAS_API_KEY (input will be hidden):${NC}"
+        read -rs cerebras_key
+        if [ ! -z "$cerebras_key" ]; then
+            update_env "CEREBRAS_API_KEY" "$cerebras_key"
+            print_success "Cerebras API key set"
+        else
+            print_error "Cerebras API key is required. Please run setup again."
+            exit 1
         fi
-        print_success "Browserbase credentials set"
+    fi
+    
+    # Ensure all required environment variables exist with placeholders
+    # These will be updated with real values when Supabase starts
+    if ! grep -q "^DATABASE_URL=" .env; then
+        echo "DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres" >> .env
+    fi
+    
+    if ! grep -q "^SUPABASE_URL=" .env; then
+        echo "SUPABASE_URL=http://127.0.0.1:54321" >> .env
+    fi
+    
+    if ! grep -q "^SUPABASE_ANON_KEY=" .env; then
+        echo "SUPABASE_ANON_KEY=your_supabase_anon_key_here" >> .env
+    fi
+    
+    if ! grep -q "^SUPABASE_SERVICE_ROLE_KEY=" .env; then
+        echo "SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key_here" >> .env
     fi
     
     # Clean up backup file
@@ -102,6 +110,39 @@ install_dependencies() {
     fi
     
     print_success "Dependencies installed"
+}
+
+# Function to fix Supabase config issues
+fix_supabase_config() {
+    print_status "Checking Supabase configuration..."
+    
+    if [ -f "supabase/config.toml" ]; then
+        # Check if network_restrictions section exists and comment it out
+        if grep -q "^\[db.network_restrictions\]" supabase/config.toml; then
+            print_status "Fixing Supabase config (commenting out unsupported network_restrictions)..."
+            
+            # Create a temporary file with the fixed config
+            awk '
+            /^\[db\.network_restrictions\]/ {
+                in_section = 1
+                print "# " $0
+                next
+            }
+            /^\[/ && in_section {
+                in_section = 0
+            }
+            in_section && /^[^#]/ {
+                print "# " $0
+                next
+            }
+            {print}
+            ' supabase/config.toml > supabase/config.toml.tmp
+            
+            # Replace the original file
+            mv supabase/config.toml.tmp supabase/config.toml
+            print_success "Supabase config fixed"
+        fi
+    fi
 }
 
 # Function to setup Supabase
@@ -134,14 +175,35 @@ setup_supabase() {
         supabase init
     fi
     
-    # Start Supabase
-    print_status "Starting Supabase..."
-    supabase start
+    # Fix config issues before starting
+    fix_supabase_config
     
-    # Get the database URL and update .env
+    # Stop any existing Supabase instances to avoid port conflicts
+    print_status "Stopping any existing Supabase instances..."
+    supabase stop 2>/dev/null || true
+    
+    # Start Supabase and capture output
+    print_status "Starting Supabase..."
+    SUPABASE_OUTPUT=$(supabase start 2>&1)
+    
+    # Display the output
+    echo "$SUPABASE_OUTPUT"
+    
+    # Extract values from the output and update .env
     if [ -f .env ]; then
-        # Extract database URL from Supabase status
-        db_url=$(supabase status | grep "DB URL" | awk '{print $3}')
+        # Extract API URL (for SUPABASE_URL)
+        api_url=$(echo "$SUPABASE_OUTPUT" | grep "API URL:" | sed 's/.*API URL: *//')
+        if [ ! -z "$api_url" ]; then
+            if grep -q "^SUPABASE_URL=" .env; then
+                sed -i.bak "s|^SUPABASE_URL=.*|SUPABASE_URL=${api_url}|" .env
+            else
+                echo "SUPABASE_URL=${api_url}" >> .env
+            fi
+            print_success "Supabase URL updated in .env"
+        fi
+        
+        # Extract database URL
+        db_url=$(echo "$SUPABASE_OUTPUT" | grep "DB URL:" | sed 's/.*DB URL: *//')
         if [ ! -z "$db_url" ]; then
             if grep -q "^DATABASE_URL=" .env; then
                 sed -i.bak "s|^DATABASE_URL=.*|DATABASE_URL=${db_url}|" .env
@@ -151,24 +213,26 @@ setup_supabase() {
             print_success "Database URL updated in .env"
         fi
         
-        # Extract Supabase keys and update .env
-        anon_key=$(supabase status | grep "anon key" | awk '{print $3}')
-        service_key=$(supabase status | grep "service_role key" | awk '{print $3}')
-        
+        # Extract anon key
+        anon_key=$(echo "$SUPABASE_OUTPUT" | grep "anon key:" | sed 's/.*anon key: *//')
         if [ ! -z "$anon_key" ]; then
             if grep -q "^SUPABASE_ANON_KEY=" .env; then
                 sed -i.bak "s|^SUPABASE_ANON_KEY=.*|SUPABASE_ANON_KEY=${anon_key}|" .env
             else
                 echo "SUPABASE_ANON_KEY=${anon_key}" >> .env
             fi
+            print_success "Supabase anon key updated in .env"
         fi
         
+        # Extract service role key
+        service_key=$(echo "$SUPABASE_OUTPUT" | grep "service_role key:" | sed 's/.*service_role key: *//')
         if [ ! -z "$service_key" ]; then
             if grep -q "^SUPABASE_SERVICE_ROLE_KEY=" .env; then
                 sed -i.bak "s|^SUPABASE_SERVICE_ROLE_KEY=.*|SUPABASE_SERVICE_ROLE_KEY=${service_key}|" .env
             else
                 echo "SUPABASE_SERVICE_ROLE_KEY=${service_key}" >> .env
             fi
+            print_success "Supabase service role key updated in .env"
         fi
         
         # Clean up backup file
@@ -246,13 +310,38 @@ setup_nextjs() {
 start_services() {
     print_status "Starting all services..."
     
-    # Start Supabase in background
+    # Fix config issues before starting
+    fix_supabase_config
+    
+    # Stop any existing Supabase instances to avoid port conflicts
+    print_status "Stopping any existing Supabase instances..."
+    supabase stop 2>/dev/null || true
+    
+    # Start Supabase
     print_status "Starting Supabase..."
-    supabase start &
-    SUPABASE_PID=$!
+    supabase start
     
     # Wait a bit for Supabase to start
     sleep 5
+    
+    # Always ensure Ollama is running
+    print_status "Checking Ollama service..."
+    if ensure_ollama_running; then
+        echo -e "${GREEN}✅ Ollama service is running${NC}"
+    else
+        echo -e "${YELLOW}⚠️  Ollama service may not have started properly${NC}"
+        echo "Please check if Ollama is installed and try running 'ollama serve' manually"
+    fi
+    
+    # Pre-load embedding model for fast response
+    if command -v ollama &> /dev/null; then
+        print_status "Pre-loading embedding model ${EMBEDDING_MODEL}..."
+        if echo "test" | ollama embed ${EMBEDDING_MODEL} > /dev/null 2>&1; then
+            echo -e "${GREEN}✅ Embedding model pre-loaded${NC}"
+        else
+            echo -e "${YELLOW}⚠️  Could not pre-load embedding model${NC}"
+        fi
+    fi
     
     # Start Next.js app in background
     print_status "Starting Next.js app..."
@@ -268,7 +357,6 @@ start_services() {
     # Function to cleanup on exit
     cleanup() {
         print_status "Shutting down services..."
-        kill $SUPABASE_PID 2>/dev/null
         kill $NEXTJS_PID 2>/dev/null
         supabase stop
         exit 0
@@ -283,11 +371,108 @@ start_services() {
     echo "  - Supabase Studio: http://localhost:54323"
     echo "  - Supabase API: http://localhost:54321"
     echo "  - Next.js App: http://localhost:3000"
+    echo "  - Ollama API: http://localhost:11434"
     echo ""
     print_status "Press Ctrl+C to stop all services"
     
     # Wait for processes
     wait
+}
+
+# Helper function to ensure Ollama is running
+ensure_ollama_running() {
+    if ! curl -s http://localhost:11434/api/version > /dev/null 2>&1; then
+        echo -e "${YELLOW}Starting Ollama service...${NC}"
+        if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "mingw"* ]] || [[ "$OSTYPE" == "cygwin" ]]; then
+            # Windows - Use start to launch in new window
+            start "Ollama" ollama serve &
+        elif [[ "$OSTYPE" == "darwin"* ]]; then
+            # macOS
+            ollama serve > /dev/null 2>&1 &
+        else
+            # Linux
+            systemctl --user start ollama 2>/dev/null || ollama serve > /dev/null 2>&1 &
+        fi
+        
+        # Wait for service to start (up to 10 seconds)
+        local attempts=0
+        while [ $attempts -lt 10 ]; do
+            if curl -s http://localhost:11434/api/version > /dev/null 2>&1; then
+                return 0
+            fi
+            sleep 1
+            ((attempts++))
+        done
+        
+        return 1
+    fi
+    return 0
+}
+
+# Function to check and setup Ollama
+check_and_setup_ollama() {
+    echo -e "${BLUE}🦙 Checking Ollama setup...${NC}"
+    
+    # Check if Ollama is installed
+    if ! command -v ollama &> /dev/null; then
+        echo -e "${YELLOW}⚠️  Ollama is not installed${NC}"
+        echo "Ollama is required for embedding generation."
+        echo "Please install Ollama from: https://ollama.ai"
+        return 1
+    fi
+    
+    echo -e "${GREEN}✅ Ollama is installed${NC}"
+    
+    # Always ensure Ollama service is running
+    if ensure_ollama_running; then
+        echo -e "${GREEN}✅ Ollama service is running${NC}"
+    else
+        echo -e "${YELLOW}⚠️  Could not start Ollama service${NC}"
+        echo "You may need to start it manually: ollama serve"
+        return 1
+    fi
+    
+    # Check if embedding model is installed
+    echo -e "${BLUE}Checking for embedding model: ${EMBEDDING_MODEL}${NC}"
+    
+    # Get list of installed models
+    if ollama list | grep -q "${EMBEDDING_MODEL%%:*}"; then
+        echo -e "${GREEN}✅ Embedding model ${EMBEDDING_MODEL} is installed${NC}"
+    else
+        echo -e "${YELLOW}⚠️  Embedding model ${EMBEDDING_MODEL} is not installed${NC}"
+        echo ""
+        echo "This model is required for semantic search and embedding generation."
+        echo "Model size: ~3-4GB (quantized version)"
+        echo ""
+        read -p "Would you like to install the embedding model now? (y/n) " -n 1 -r
+        echo
+        
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            echo -e "${BLUE}Downloading embedding model...${NC}"
+            echo "This may take a few minutes depending on your internet connection..."
+            
+            if ollama pull ${EMBEDDING_MODEL}; then
+                echo -e "${GREEN}✅ Embedding model installed successfully${NC}"
+            else
+                echo -e "${RED}❌ Failed to install embedding model${NC}"
+                echo "You can install it manually later with:"
+                echo "  ollama pull ${EMBEDDING_MODEL}"
+                return 1
+            fi
+        else
+            echo -e "${YELLOW}⚠️  Skipping embedding model installation${NC}"
+            echo "You can install it later with:"
+            echo "  ollama pull ${EMBEDDING_MODEL}"
+        fi
+    fi
+    
+    # Pre-load the model for faster first-time use
+    echo -e "${BLUE}Pre-loading embedding model...${NC}"
+    echo "test" | ollama embed ${EMBEDDING_MODEL} > /dev/null 2>&1 && \
+        echo -e "${GREEN}✅ Model pre-loaded and ready${NC}" || \
+        echo -e "${YELLOW}⚠️  Could not pre-load model (will load on first use)${NC}"
+    
+    return 0
 }
 
 # Main function
@@ -307,9 +492,17 @@ main() {
         "setup")
             prompt_api_keys
             install_dependencies
+            
+            # Ensure Ollama is running early in the setup process
+            if command -v ollama &> /dev/null; then
+                print_status "Ensuring Ollama service is running for setup..."
+                ensure_ollama_running
+            fi
+            
             setup_supabase
             setup_database
             setup_nextjs
+            check_and_setup_ollama
             print_success "Setup complete! Run './setup.sh start' to start all services"
             ;;
         "start")
