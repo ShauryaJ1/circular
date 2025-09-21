@@ -1,330 +1,278 @@
-# Stagehand with Browser Tools
+# Circular
 
-A powerful browser automation setup that extends [Stagehand](https://docs.stagehand.dev/) with DevTools-like capabilities for monitoring console logs, network requests, localStorage, cookies, and more.
+**The missing piece for AI-native IDEs: browser testing that actually works**
 
-## Features
+Circular extends Cursor and other AI-powered IDEs with intelligent browser testing capabilities, combining natural language commands with comprehensive DevTools monitoring and learning from past solutions.
 
-### Browser Monitoring Tools
-- **Console Logs**: Capture all browser console messages (log, info, warn, error)
-- **Network Monitoring**: Track all HTTP requests and responses with payloads
-- **Storage Access**: Read/write localStorage, sessionStorage, and cookies
-- **Error Tracking**: Capture page errors and failed network requests
-- **Export Logs**: Export all captured data as JSON for analysis
+---
 
-### Test Next.js App
-Includes a full-featured Next.js app with tRPC for testing:
-- Multiple forms for testing console logs, storage, and cookies
-- Working tRPC endpoints for successful API calls
-- Intentionally broken endpoints for error testing
-- Beautiful modern UI with Tailwind CSS
+## 🎯 Inspiration  
 
-## Setup
+Circular works as an extension for AI-native IDEs, offering an agentic approach to browser testing that combines the simplicity of natural language commands with the depth of DevTools monitoring. The inspiration for this project came from two of our team members, who had written over 300,000 lines of "vibe coding" while working at a startup this summer. They experienced firsthand the limitations of Cursor, particularly that it couldn't actually test the code it generated.  
 
-### 1. Install Dependencies
+## 💡 What it does  
+
+Circular solves Cursor's primary flaw: **it can't verify if its code works**. Our agent runs tests in the browser, monitors DevTools for issues, and learns from past solutions to solve similar bugs more efficiently. This makes Cursor's vibe coding workflow more robust by adding actual validation and memory of prior fixes. As this is integrated into AI-Native IDEs like Cursor through editing the Cursor rules, Circular's testing provides an additional layer of quality assurance and greatly streamlines the debugging process
+
+**Key Features:**
+- 🤖 **Natural Language Testing** - "Click the login button and verify it works"
+- 🔍 **DevTools Monitoring** - Captures console logs, network requests, storage changes
+- 🧠 **Learning Memory** - Matches current problems against historical fixes
+- ⚡ **Real-time Feedback** - Integrates directly with your IDE workflow
+- 📊 **Comprehensive Logging** - Full observability of browser automation
+- 🖥️ **Web Dashboard** - Beautiful Next.js interface to view all test logs, runs, and solutions in real-time
+
+## 🛠️ How we built it  
+
+We built our agent using **Stagehand** (built on Playwright) to automate browser interactions. Alongside this, we created a **Next.js + pgVector + Supabase** web app to store logs of past issues and their resolutions, enabling the agent to match current problems against historical fixes. 
+
+### Tech Stack:
+- **🎭 Browser Automation**: Stagehand + Playwright for natural language browser control
+- **🧠 LLMs**: Cerebras API and open-source models for intelligent test generation
+- **🔗 Embeddings**: Local Ollama server (embedding-gemma) for efficient similarity matching
+- **💾 Database**: PostgreSQL with pgVector for semantic search capabilities
+- **🖥️ Frontend**: Next.js dashboard for real-time monitoring and management
+- **🔌 Integration**: Direct Cursor integration with custom rules and context
+
+## 🚧 Challenges we ran into  
+
+- **Model Selection**: Choosing models small enough to run locally without sacrificing performance (embedding-gemma at ~600MB vs. Qwen3 embeddings at ~8GB)
+- **IDE Integration**: Defining Cursor rules so our extension could provide the right testing context
+- **DevTools Access**: Figuring out how to give Stagehand access to DevTools and formatting error outputs so Cursor could understand them
+- **Performance**: Waiting for the agent to fully interact with the created project was slower than ideal
+
+## 🏆 Accomplishments that we're proud of  
+
+We're proud to have built a product that **meaningfully improves on Cursor**, one of the most popular AI coding tools today. Circular integrates seamlessly into Cursor, enhances its capabilities, and has the potential to revolutionize coding workflows by bridging the gap between vibe coding and validation.  
+
+## 📚 What we learned  
+
+- How to build browser agents with Stagehand and Playwright
+- How to serve and use local models with Ollama  
+- How to design embedding-based retrieval for problem–solution matching
+- How critical context management is when working with AI-native IDEs
+
+## 🚀 What's next for Circular  
+
+- **⚡ Performance**: Improved speed and efficiency
+- **🎤 Voice Testing**: Support for voice-based model testing  
+- **📁 File Formats**: Support for testing the upload of more file formats
+- **🏠 Local Models**: Running the browser agent fully on local models
+- **🌍 Accessibility**: Expanding access so that every coder can use it
+
+## 🖥️ Web Dashboard
+
+Circular includes a comprehensive **Next.js dashboard** that provides real-time visibility into all your browser automation activities:
+
+### Dashboard Features:
+- **📊 Overview Dashboard** - System statistics, recent runs, and activity summaries
+- **📝 Logs Viewer** - Detailed log entries with filtering, search, and expandable details
+- **🏃 Test Runs** - History of all test executions with status, duration, and metadata
+- **💡 Solutions Database** - Knowledge base of past issues and their resolutions
+- **🔍 Semantic Search** - Find similar issues using AI-powered embeddings
+- **📱 Responsive Design** - Works on desktop, tablet, and mobile devices
+
+### Dashboard Pages:
+- **`/`** - Main dashboard with system overview and recent activity
+- **`/logs`** - Comprehensive log viewer with advanced filtering
+- **`/runs`** - Test execution history and performance metrics  
+- **`/solutions`** - Searchable knowledge base of solved problems
+
+The dashboard updates in real-time as your agent runs tests, providing immediate feedback on what's happening in the browser and storing all results for future reference.
+
+---
+
+## 🛠️ Setup & Installation
+
+### Prerequisites
+- Node.js 18+ installed
+- pnpm installed (`npm install -g pnpm`)
+- API key from one of the supported providers
+- Supabase account (for database and embeddings)
+
+### 1. Database Setup (Supabase)
+
+Circular uses **PostgreSQL with pgVector** for storing logs and semantic search. You can use Supabase (recommended) or your own PostgreSQL instance.
+
+#### Option A: Supabase (Recommended)
+
+1. **Create a Supabase Project**:
+   - Go to [supabase.com](https://supabase.com) and create a new project
+   - Wait for the project to be fully provisioned
+
+2. **Enable Required Extensions**:
+   ```sql
+   -- Run these in the Supabase SQL Editor
+   CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+   CREATE EXTENSION IF NOT EXISTS "pg_trgm";  
+   CREATE EXTENSION IF NOT EXISTS "vector";
+   ```
+
+3. **Get Your Database URL**:
+   - Go to Project Settings → Database
+   - Copy the connection string under "Connection pooling"
+   - It should look like: `postgresql://postgres:[password]@[host]:6543/postgres?pgbouncer=true`
+
+#### Option B: Local PostgreSQL
+
+1. **Install PostgreSQL** with pgVector extension
+2. **Create Database** and enable extensions:
+   ```sql
+   CREATE DATABASE circular;
+   CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+   CREATE EXTENSION IF NOT EXISTS "pg_trgm";
+   CREATE EXTENSION IF NOT EXISTS "vector";
+   ```
+
+### 2. Install Dependencies
 ```bash
 pnpm install
 ```
 
-### 2. Set up Environment Variables
-Copy `env.sample` to `.env` and add your API key:
+### 3. Set up Environment Variables
+Copy `env.sample` to `.env` and configure your environment:
 ```bash
 cp env.sample .env
-# Then edit .env with your API key (choose one):
+# Then edit .env with the following:
 ```
 
-**Cerebras** (powerful and cost-effective)
-- Get your API key from: https://console.cerebras.net/
-- Set `CEREBRAS_API_KEY=your_key_here`
+**Required Environment Variables:**
+```bash
+# Database (from Supabase or your PostgreSQL instance)
+DATABASE_URL="postgresql://postgres:[password]@[host]:6543/postgres?pgbouncer=true"
 
-### 3. Verify Setup (Optional)
+# AI Provider (choose one)
+ANTHROPIC_API_KEY="your_key_here"     # Recommended
+OPENAI_API_KEY="your_key_here"        # Alternative
+CEREBRAS_API_KEY="your_key_here"      # Fast & cost-effective
+
+# Optional: Embeddings service (if using local Ollama)
+OLLAMA_BASE_URL="http://localhost:11434"
+```
+
+### 4. Initialize Database
+Run Prisma migrations to set up the database schema:
+```bash
+pnpm db:push
+```
+
+### 5. (Optional) Set up Local Embeddings with Ollama
+
+For enhanced privacy and performance, you can run embeddings locally using Ollama:
+
+1. **Install Ollama**:
+   - Download from [ollama.ai](https://ollama.ai)
+   - Or install via package manager
+
+2. **Pull the Embedding Model**:
+   ```bash
+   ollama pull embedding-gemma
+   ```
+
+3. **Start Ollama Service**:
+   ```bash
+   ollama serve
+   ```
+   
+   This will start the service on `http://localhost:11434` (already configured in your `.env`)
+
+**Note**: If you skip this step, the system will work without local embeddings but won't have semantic search capabilities for the knowledge base.
+
+### 6. Verify Setup
 Test that everything is configured correctly:
 ```bash
 pnpm test:setup
 ```
-This will verify your API key and browser automation setup.
 
-### 4. Start the Next.js Test App
-In one terminal:
+### 7. Start the System
+
+**Terminal 1: Start the Dashboard**
 ```bash
 pnpm dev:next
 ```
-The app will be available at http://localhost:3000
+Dashboard available at http://localhost:3000
 
-### 5. Run Stagehand with Browser Tools
-In another terminal:
+**🖥️ Dashboard Access:**
+- **Main Dashboard**: http://localhost:3000 - Overview and system stats
+- **Logs Viewer**: http://localhost:3000/logs - Detailed test logs with search/filter
+- **Test Runs**: http://localhost:3000/runs - Execution history and performance
+- **Solutions**: http://localhost:3000/solutions - Knowledge base of solved issues
 
-**Flexible Examples** (auto-detect provider from .env):
+**Terminal 2: Start the Agent Server**
 ```bash
-# Basic example - works with any provider
-pnpm run:flexible
-
-# Agent example - works with any provider
-pnpm run:agent-flexible
-```
-
-**Provider-Specific Examples** (if you've modified them):
-```bash
-# Anthropic Claude examples
-pnpm run:stagehand     # Uses Claude for basic automation
-pnpm run:agent         # Uses Claude agent
-
-# Note: Update these files to use Gemini if needed
-```
-
-## 🎮 Agent Server System (NEW!)
-
-The agent can now run as a server that accepts test commands via CLI:
-
-### Prerequisites
-- **tsx installed globally**: `npm install -g tsx`
-- **Dependencies installed**: `pnpm install`
-- **.env configured**: with your API keys
-
-### Quick Start
-```bash
-# Terminal 1: Start Next.js app
-pnpm dev:next
-
-# Terminal 2: Start agent server
 ./agent.sh --run        # Unix/Mac
 agent.bat --run         # Windows
-
-# Terminal 3: Send test commands
-./agent.sh --test "Click the Test Console button"              # Unix/Mac
-./agent.sh --test -context "Testing forms" "Fill the form"     # Unix/Mac
-
-agent.bat --test "Click the Test Console button"               # Windows
-agent.bat --test -context "Testing forms" "Fill the form"      # Windows
 ```
 
-### Commands
-
-#### Start Agent Server
+**Terminal 3: Send Test Commands**
 ```bash
-# Unix/Mac/Linux
-./agent.sh --run
+# Simple test
+./agent.sh --test "Click the login button and verify it works"
 
-# Windows
-agent.bat --run
+# Test with context
+./agent.sh --test -context "Testing user registration flow" "Fill out the signup form with test data and submit"
 ```
 
-#### Send Test Commands
+## 🎮 Usage Examples
+
+### Basic Browser Testing
 ```bash
-# Simple test (Unix/Mac)
-./agent.sh --test "Click on the login button"
+# Test form interactions
+./agent.sh --test "Fill out the contact form and submit"
 
-# Simple test (Windows)
-agent.bat --test "Click on the login button"
+# Test navigation
+./agent.sh --test "Navigate to the dashboard and verify all widgets load"
 
-# Test with context (Unix/Mac)
-./agent.sh --test -context "User is on homepage" "Navigate to settings"
-
-# Test with context (Windows)
-agent.bat --test -context "User is on homepage" "Navigate to settings"
+# Test error handling
+./agent.sh --test "Try to submit an empty form and verify error messages appear"
 ```
 
-### Features
-- ✅ **Visible browser window** - stays open and maximized
-- ✅ Agent runs as persistent server
-- ✅ Page refreshes before each test
-- ✅ Context is added to system prompt
-- ✅ Failed requests automatically saved to files
-- ✅ Real-time browser monitoring with DevTools
-
-## Usage
-
-### Basic Example
-```typescript
-import { StagehandWithBrowserTools } from './stagehand-browser-tools';
-
-// Option 1: Google Gemini
-const stagehand = new StagehandWithBrowserTools({
-  env: 'LOCAL',
-  localBrowserLaunchOptions: {
-    headless: false,
-    devtools: true,
-  },
-  modelName: 'google/gemini-2.5-flash',
-  modelClientOptions: {
-    apiKey: process.env.CEREBRAS_API_KEY,
-  },
-});
-
-// Option 2: Anthropic Claude
-const stagehand = new StagehandWithBrowserTools({
-  env: 'LOCAL',
-  localBrowserLaunchOptions: {
-    headless: false,
-    devtools: true,
-  },
-  modelName: 'claude-sonnet-4-20250514',
-  modelClientOptions: {
-    apiKey: process.env.CEREBRAS_API_KEY,
-  },
-});
-
-// Initialize and start monitoring
-await stagehand.init();
-await stagehand.startMonitoring();
-
-// Navigate to your app
-await stagehand.page.goto('http://localhost:3000');
-
-// Use Stagehand's natural language actions
-await stagehand.act('Click on the "Test Console" button');
-
-// Get captured logs
-const consoleLogs = stagehand.getConsoleLogs();
-const networkLogs = stagehand.getNetworkLogs();
-const storageData = await stagehand.getStorageData();
-```
-
-### Using with Agent (Autonomous Execution)
-```typescript
-// Option 1: Google Gemini Agent
-const agent = stagehand.agent({
-  provider: 'google',
-  model: 'gemini-2.5-flash',
-  options: {
-    apiKey: process.env.CEREBRAS_API_KEY,
-  }
-});
-
-// Option 2: Anthropic Claude Agent (more powerful)
-const agent = stagehand.agent({
-  provider: 'anthropic',
-  model: 'claude-sonnet-4-20250514',
-  options: {
-    apiKey: process.env.CEREBRAS_API_KEY,
-  }
-});
-
-// Execute complex tasks autonomously
-await agent.execute({
-  instruction: "Fill out the form with test data and submit it",
-  maxSteps: 10
-});
-
-// Monitor what the agent did
-const logs = stagehand.getNetworkLogs();
-const consoleLogs = stagehand.getConsoleLogs();
-```
-
-### Available Methods
-
-#### Monitoring
-- `startMonitoring()` - Start capturing browser events
-- `clearLogs()` - Clear all captured logs
-
-#### Console Logs
-- `getConsoleLogs(type?)` - Get console logs, optionally filtered by type
-- `waitForConsoleLog(pattern, timeout?)` - Wait for specific console message
-
-#### Network
-- `getNetworkLogs(filter?)` - Get network logs with optional filtering
-- `getFailedRequests()` - Get all failed network requests (status >= 400)
-- `waitForNetworkRequest(urlPattern, timeout?)` - Wait for specific request
-
-#### Storage
-- `getStorageData()` - Get all localStorage, sessionStorage, and cookies
-- `setLocalStorageItem(key, value)` - Set localStorage item
-- `setCookie(cookie)` - Set a cookie
-
-#### Export
-- `exportLogs()` - Export all logs as JSON string
-
-### Saving Failed Requests to File
-
-All examples now automatically save failed requests to timestamped text files:
-
-```typescript
-import { saveFailedRequestsToFile } from './save-failed-requests';
-
-const failedRequests = stagehand.getFailedRequests();
-if (failedRequests.length > 0) {
-  const filepath = saveFailedRequestsToFile(failedRequests);
-  console.log(`Failed requests saved to: ${filepath}`);
-}
-```
-
-The output file includes:
-- Full URL and status codes
-- Request/response headers
-- Request/response bodies
-- Timestamps for each failed request
-
-Test this feature:
+### Advanced Testing with Context
 ```bash
-pnpm test:failed-requests
+# E-commerce testing
+./agent.sh --test -context "Testing checkout flow on e-commerce site" "Add item to cart, proceed to checkout, and verify total calculation"
+
+# API testing
+./agent.sh --test -context "Testing API integration" "Submit form and verify the API response is displayed correctly"
 ```
 
-## Project Structure
+### Knowledge System
+```bash
+# Store solutions for future reference
+./agent.sh --store --issue "Login form validation not working" --solution "Added proper email regex validation" --tags login validation frontend
+
+# Search for similar issues
+./agent.sh --retrieve --input "form validation errors"
+./agent.sh --retrieve --tags frontend validation
+```
+
+## 📊 Project Structure
 
 ```
 circular/
 ├── src/
-│   ├── agent/                   # Agent system core files
-│   │   ├── agent.ts            # Main CLI entry point
-│   │   ├── agent-server.ts     # Agent server that runs browser
-│   │   ├── agent-client.ts     # Client for sending test commands
-│   │   ├── stagehand-browser-tools.ts # Extended Stagehand class
-│   │   └── config.ts           # Configuration helper
-│   │
+│   ├── agent/                   # Core agent system
+│   │   ├── agent-server.ts     # Main agent server
+│   │   ├── stagehand-browser-tools.ts # Extended browser automation
+│   │   └── config.ts           # Multi-provider AI configuration
 │   ├── examples/               # Usage examples
-│   │   ├── example-usage.ts    # Basic example
-│   │   ├── example-agent-usage.ts # Agent example
-│   │   └── example-*-flexible.ts # Auto-detect provider examples
-│   │
-│   ├── tests/                  # Test files
-│   │   ├── test-setup.ts       # Setup verification
-│   │   └── test-*.ts           # Various test files
-│   │
-│   ├── utils/                  # Utility functions
-│   │   ├── save-failed-requests.ts # Failed request file saver
-│   │   ├── *-generator.ts      # Content generators
-│   │   └── setup-*.sh          # Setup scripts
-│   │
-│   └── docs/                   # Documentation
-│       ├── AGENT_USAGE.md      # Agent usage guide
-│       ├── SETUP_GUIDE.md      # Setup instructions
-│       └── *.md                # Other guides
-│
-├── frontend/                   # Next.js test application
-├── demo-apps/                  # Demo applications for testing
+│   ├── tests/                  # Test suite
+│   └── utils/                  # Utility functions
+├── frontend/                   # Next.js dashboard
+├── demo-apps/                  # Test applications
 ├── lib/                        # Shared libraries
-├── prisma/                     # Database schema and migrations
-├── agent.sh / agent.bat        # CLI scripts
-├── package.json                # Project dependencies and scripts
-├── env.sample                  # Environment variables template
-└── README.md                   # This file
+├── prisma/                     # Database schema
+└── agent.sh / agent.bat        # CLI scripts
 ```
 
-## Test Scenarios
+## 🤝 Contributing
 
-The Next.js test app includes:
+We welcome contributions! Whether you're fixing bugs, adding features, or improving documentation, every contribution helps make Circular better for the entire AI coding community.
 
-1. **Console Testing** - Generate various console messages
-2. **Storage Testing** - Set/get localStorage and sessionStorage
-3. **Cookie Testing** - Set and read cookies
-4. **Form Submission** - Test form data with tRPC mutation
-5. **API Calls** - Test successful tRPC queries
-6. **Error Handling** - Test broken endpoints and 404s
-7. **Network Monitoring** - Track all API requests/responses
+## 📄 License
 
-## Tips
+ISC License - see LICENSE file for details.
 
-1. **Use DevTools**: Run with `headless: false` and `devtools: true` to see the browser
-2. **Parallel Terminals**: Keep Next.js running in one terminal, Stagehand in another
-3. **Check Logs**: The console will show real-time capture of browser events
-4. **Export Data**: Use `exportLogs()` to save all captured data for analysis
+---
 
-## Troubleshooting
-
-- **Port 3000 in use**: Make sure no other app is using port 3000
-- **API Key not working**: Verify your Gemini API key is valid
-- **Browser not opening**: Check if Chrome/Chromium is installed
-- **tRPC errors**: Ensure the Next.js app is running before Stagehand
-
-## License
-
-ISC
+**Built with ❤️ for the AI coding community**
