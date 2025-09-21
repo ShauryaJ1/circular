@@ -20,8 +20,7 @@ out/
 .vercel/
 .netlify/
 
-# Logs
-logs/
+# Logs (files, not directories)
 *.log
 npm-debug.log*
 yarn-debug.log*
