@@ -1,5 +1,10 @@
 import { Stagehand } from '@browserbasehq/stagehand';
 import { Page, BrowserContext, Request, Response, ConsoleMessage } from 'playwright';
+import { PDFContentGenerator, PDFContentGenerationOptions } from './pdf-content-generator';
+import { CSVContentGenerator, CSVContentGenerationOptions } from './csv-content-generator';
+import { DOCXContentGenerator, DOCXContentGenerationOptions } from './docx-content-generator';
+import * as fs from 'fs';
+import * as path from 'path';
 
 export interface BrowserLog {
   type: string;
@@ -297,5 +302,249 @@ export class StagehandWithBrowserTools extends Stagehand {
     }
 
     return null;
+  }
+
+  /**
+   * Upload a file by generating it based on the required file type and uploading it to a file input
+   * @param fileInputSelector - CSS selector for the file input element
+   * @param fileType - Type of file to generate ('pdf', 'csv', 'docx')
+   * @param prompt - Content prompt for file generation
+   * @param options - Options for file generation
+   * @param cleanupAfterUpload - Whether to delete the generated file after upload (default: true)
+   */
+  async uploadFile(
+    fileInputSelector: string,
+    fileType: 'pdf' | 'csv' | 'docx',
+    prompt: string,
+    options: PDFContentGenerationOptions | CSVContentGenerationOptions | DOCXContentGenerationOptions = {},
+    cleanupAfterUpload: boolean = true
+  ): Promise<string> {
+    const page = this.page;
+    if (!page) {
+      throw new Error('No page available. Make sure to call init() first');
+    }
+
+    // Ensure generated-files directory exists
+    const outputDir = './generated-files';
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+    }
+
+    let generatedFilePath: string | undefined;
+    const timestamp = Date.now();
+    const baseFileName = `upload_${fileType}_${timestamp}`;
+
+    try {
+      // Generate the appropriate file type
+      switch (fileType) {
+        case 'pdf':
+          generatedFilePath = await this.generatePDFFile(prompt, path.join(outputDir, baseFileName), options as PDFContentGenerationOptions);
+          break;
+        case 'csv':
+          generatedFilePath = await this.generateCSVFile(prompt, path.join(outputDir, baseFileName), options as CSVContentGenerationOptions);
+          break;
+        case 'docx':
+          generatedFilePath = await this.generateDOCXFile(prompt, path.join(outputDir, baseFileName), options as DOCXContentGenerationOptions);
+          break;
+        default:
+          throw new Error(`Unsupported file type: ${fileType}`);
+      }
+
+      console.log(`📁 Generated ${fileType.toUpperCase()} file: ${generatedFilePath}`);
+
+      // Upload the file using Playwright
+      await page.setInputFiles(fileInputSelector, generatedFilePath);
+      console.log(`✅ Successfully uploaded ${fileType.toUpperCase()} file to ${fileInputSelector}`);
+
+      // Clean up the generated file if requested
+      if (cleanupAfterUpload) {
+        try {
+          fs.unlinkSync(generatedFilePath);
+          console.log(`🗑️ Cleaned up generated file: ${generatedFilePath}`);
+        } catch (cleanupError) {
+          console.warn(`⚠️ Failed to clean up file ${generatedFilePath}:`, cleanupError);
+        }
+      }
+
+      return generatedFilePath;
+    } catch (error) {
+      // Clean up the generated file if it was created but upload failed
+      if (generatedFilePath && fs.existsSync(generatedFilePath) && cleanupAfterUpload) {
+        try {
+          fs.unlinkSync(generatedFilePath);
+        } catch (cleanupError) {
+          console.warn(`⚠️ Failed to clean up file after error:`, cleanupError);
+        }
+      }
+      throw new Error(`File upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Upload a PDF file by generating it and uploading to a file input
+   */
+  async uploadPDF(
+    fileInputSelector: string,
+    prompt: string,
+    options: PDFContentGenerationOptions = {},
+    cleanupAfterUpload: boolean = true
+  ): Promise<string> {
+    return this.uploadFile(fileInputSelector, 'pdf', prompt, options, cleanupAfterUpload);
+  }
+
+  /**
+   * Upload a CSV file by generating it and uploading to a file input
+   */
+  async uploadCSV(
+    fileInputSelector: string,
+    prompt: string,
+    options: CSVContentGenerationOptions = {},
+    cleanupAfterUpload: boolean = true
+  ): Promise<string> {
+    return this.uploadFile(fileInputSelector, 'csv', prompt, options, cleanupAfterUpload);
+  }
+
+  /**
+   * Upload a DOCX file by generating it and uploading to a file input
+   */
+  async uploadDOCX(
+    fileInputSelector: string,
+    prompt: string,
+    options: DOCXContentGenerationOptions = {},
+    cleanupAfterUpload: boolean = true
+  ): Promise<string> {
+    return this.uploadFile(fileInputSelector, 'docx', prompt, options, cleanupAfterUpload);
+  }
+
+  /**
+   * Generate a PDF file using the PDF content generator
+   */
+  private async generatePDFFile(
+    prompt: string,
+    outputPath: string,
+    options: PDFContentGenerationOptions
+  ): Promise<string> {
+    const generator = new PDFContentGenerator();
+    try {
+      return await generator.generatePDFFromPrompt(prompt, outputPath, options);
+    } finally {
+      await generator.close();
+    }
+  }
+
+  /**
+   * Generate a CSV file using the CSV content generator
+   */
+  private async generateCSVFile(
+    prompt: string,
+    outputPath: string,
+    options: CSVContentGenerationOptions
+  ): Promise<string> {
+    const generator = new CSVContentGenerator();
+    try {
+      return await generator.generateStructuredDataCSV(prompt, outputPath, options);
+    } finally {
+      await generator.close();
+    }
+  }
+
+  /**
+   * Generate a DOCX file using the DOCX content generator
+   */
+  private async generateDOCXFile(
+    prompt: string,
+    outputPath: string,
+    options: DOCXContentGenerationOptions
+  ): Promise<string> {
+    const generator = new DOCXContentGenerator();
+    try {
+      return await generator.generateDOCXFromPrompt(prompt, outputPath, options);
+    } finally {
+      await generator.close();
+    }
+  }
+
+  /**
+   * Upload an existing file from the generated-files directory
+   * @param fileInputSelector - CSS selector for the file input element
+   * @param fileName - Name of the file in the generated-files directory
+   * @param cleanupAfterUpload - Whether to delete the file after upload (default: false)
+   */
+  async uploadExistingFile(
+    fileInputSelector: string,
+    fileName: string,
+    cleanupAfterUpload: boolean = false
+  ): Promise<string> {
+    const page = this.page;
+    if (!page) {
+      throw new Error('No page available. Make sure to call init() first');
+    }
+
+    const filePath = path.join('./generated-files', fileName);
+    
+    if (!fs.existsSync(filePath)) {
+      throw new Error(`File not found: ${filePath}`);
+    }
+
+    try {
+      await page.setInputFiles(fileInputSelector, filePath);
+      console.log(`✅ Successfully uploaded existing file: ${fileName}`);
+
+      // Clean up the file if requested
+      if (cleanupAfterUpload) {
+        try {
+          fs.unlinkSync(filePath);
+          console.log(`🗑️ Cleaned up uploaded file: ${filePath}`);
+        } catch (cleanupError) {
+          console.warn(`⚠️ Failed to clean up file ${filePath}:`, cleanupError);
+        }
+      }
+
+      return filePath;
+    } catch (error) {
+      throw new Error(`File upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * List all files in the generated-files directory
+   */
+  listGeneratedFiles(): string[] {
+    const outputDir = './generated-files';
+    if (!fs.existsSync(outputDir)) {
+      return [];
+    }
+
+    return fs.readdirSync(outputDir).filter(file => {
+      const filePath = path.join(outputDir, file);
+      return fs.statSync(filePath).isFile();
+    });
+  }
+
+  /**
+   * Clean up all files in the generated-files directory
+   */
+  cleanupGeneratedFiles(): void {
+    const outputDir = './generated-files';
+    if (!fs.existsSync(outputDir)) {
+      return;
+    }
+
+    const files = fs.readdirSync(outputDir);
+    let cleanedCount = 0;
+
+    files.forEach(file => {
+      const filePath = path.join(outputDir, file);
+      try {
+        if (fs.statSync(filePath).isFile()) {
+          fs.unlinkSync(filePath);
+          cleanedCount++;
+        }
+      } catch (error) {
+        console.warn(`⚠️ Failed to delete file ${file}:`, error);
+      }
+    });
+
+    console.log(`🗑️ Cleaned up ${cleanedCount} files from generated-files directory`);
   }
 }
