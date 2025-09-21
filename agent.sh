@@ -22,6 +22,7 @@ show_help() {
     echo ""
     echo "Commands:"
     echo "  --run           Start the agent server with browser"
+    echo "                  (prompts for target port to navigate to)"
     echo "  --test          Send test command to running agent"
     echo "  --store         Store a log entry with embeddings"
     echo "  --retrieve      Search and retrieve logs"
@@ -142,7 +143,24 @@ case "$1" in
         echo -e "${GREEN}🚀 Starting agent server...${NC}"
         echo -e "${BLUE}🖥️  Browser will open and stay visible${NC}"
         echo ""
-        cd "$SCRIPT_DIR" && tsx agent-server.ts
+        
+        # Prompt for target port
+        echo -e "${CYAN}Target Application Configuration${NC}"
+        echo "================================="
+        read -p "Enter the port of the application to navigate to (default: 3000): " target_port
+        target_port=${target_port:-3000}
+        
+        # Validate port number
+        if ! [[ "$target_port" =~ ^[0-9]+$ ]] || [ "$target_port" -lt 1 ] || [ "$target_port" -gt 65535 ]; then
+            echo -e "${RED}Invalid port number. Using default port 3000.${NC}"
+            target_port=3000
+        fi
+        
+        echo -e "${GREEN}✅ Agent will navigate to: http://localhost:${target_port}${NC}"
+        echo ""
+        
+        # Pass the port as an environment variable
+        TARGET_PORT="$target_port" cd "$SCRIPT_DIR" && tsx agent-server.ts
         ;;
         
     --test|-t)

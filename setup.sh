@@ -263,47 +263,153 @@ setup_database() {
     print_success "Database setup complete"
 }
 
-# Function to create Next.js app if it doesn't exist
+# Function to optionally setup Next.js app
 setup_nextjs() {
-    if [ ! -d "next-app" ]; then
-        print_status "Creating Next.js app..."
+    print_status "Next.js Setup (Optional)"
+    echo "========================"
+    echo ""
+    echo "This project can work with an existing Next.js application."
+    echo "You can skip this step if you already have a Next.js app or will create one later."
+    echo ""
+    
+    read -p "Do you want to create a new Next.js app now? (y/n): " -n 1 -r
+    echo
+    
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        read -p "Enter the directory name for the Next.js app (default: next-app): " app_dir
+        app_dir=${app_dir:-next-app}
         
-        if command_exists pnpm; then
-            pnpm create next-app@latest next-app --typescript --tailwind --eslint --app --src-dir --import-alias "@/*"
-        else
-            npx create-next-app@latest next-app --typescript --tailwind --eslint --app --src-dir --import-alias "@/*"
-        fi
-        
-        # Install dependencies for the Next.js app
-        cd next-app
-        if command_exists pnpm; then
-            pnpm install
-            pnpm add @prisma/client @supabase/supabase-js
-        else
-            npm install
-            npm install @prisma/client @supabase/supabase-js
-        fi
-        cd ..
-        
-        print_success "Next.js app created"
-    else
-        print_status "Next.js app already exists"
-        
-        # Check if node_modules exists in next-app
-        if [ ! -d "next-app/node_modules" ]; then
-            print_status "Installing Next.js dependencies..."
-            cd next-app
-            if command_exists pnpm; then
-                pnpm install
-                pnpm add @prisma/client @supabase/supabase-js
+        if [ -d "$app_dir" ]; then
+            print_warning "Directory '$app_dir' already exists"
+            
+            # Check if it has a package.json
+            if [ -f "$app_dir/package.json" ]; then
+                print_status "Found existing Node.js project in '$app_dir'"
+                
+                # Check if node_modules exists
+                if [ ! -d "$app_dir/node_modules" ]; then
+                    read -p "Install dependencies for existing project? (y/n): " -n 1 -r
+                    echo
+                    if [[ $REPLY =~ ^[Yy]$ ]]; then
+                        print_status "Installing dependencies in $app_dir..."
+                        cd "$app_dir"
+                        if command_exists pnpm; then
+                            pnpm install
+                            pnpm add @prisma/client @supabase/supabase-js 2>/dev/null || true
+                        else
+                            npm install
+                            npm install @prisma/client @supabase/supabase-js 2>/dev/null || true
+                        fi
+                        cd ..
+                        print_success "Dependencies installed"
+                    fi
+                fi
             else
-                npm install
-                npm install @prisma/client @supabase/supabase-js
+                print_warning "Directory exists but doesn't appear to be a Node.js project"
+                read -p "Skip Next.js setup? (y/n): " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    print_status "Skipping Next.js setup"
+                    return
+                fi
             fi
-            cd ..
-            print_success "Next.js dependencies installed"
+        else
+            print_status "Creating Next.js app in '$app_dir'..."
+            
+            if command_exists pnpm; then
+                pnpm create next-app@latest "$app_dir" --typescript --tailwind --eslint --app --src-dir --import-alias "@/*"
+            else
+                npx create-next-app@latest "$app_dir" --typescript --tailwind --eslint --app --src-dir --import-alias "@/*"
+            fi
+            
+            if [ -d "$app_dir" ]; then
+                # Install additional dependencies for the Next.js app
+                cd "$app_dir"
+                if command_exists pnpm; then
+                    pnpm add @prisma/client @supabase/supabase-js
+                else
+                    npm install @prisma/client @supabase/supabase-js
+                fi
+                cd ..
+                
+                print_success "Next.js app created in '$app_dir'"
+            else
+                print_error "Failed to create Next.js app"
+            fi
         fi
+    else
+        print_status "Skipping Next.js setup - you can set up your own Next.js app later"
+        echo ""
+        echo "When you run './setup.sh start', you'll be prompted to specify"
+        echo "the path to your Next.js app and the port to run it on."
     fi
+}
+
+# Function to prompt for Next.js configuration
+prompt_nextjs_config() {
+    while true; do
+        echo ""
+        echo -e "${CYAN}Next.js Configuration${NC}"
+        echo "====================="
+        
+        # Ask if user wants to start Next.js
+        read -p "Do you want to start a Next.js application? (y/n): " -n 1 -r
+        echo
+        
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            return 1  # Return false, don't start Next.js
+        fi
+        
+        # Ask for the path to the Next.js app
+        echo ""
+        read -p "Enter the path to your Next.js app (relative to current directory, default: next-app): " nextjs_path
+        nextjs_path=${nextjs_path:-next-app}
+        
+        # Check if the path exists
+        if [ ! -d "$nextjs_path" ]; then
+            print_error "Directory '$nextjs_path' does not exist!"
+            read -p "Would you like to try another path? (y/n): " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                continue  # Try again with the loop
+            else
+                return 1
+            fi
+        fi
+        
+        # Check if it's a valid Next.js app (has package.json)
+        if [ ! -f "$nextjs_path/package.json" ]; then
+            print_warning "No package.json found in '$nextjs_path'. This may not be a valid Next.js app."
+            read -p "Continue anyway? (y/n): " -n 1 -r
+            echo
+            if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+                read -p "Would you like to try another path? (y/n): " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    continue  # Try again with the loop
+                else
+                    return 1
+                fi
+            fi
+        fi
+        
+        # Ask for the port
+        echo ""
+        read -p "Enter the port for Next.js (default: 3000): " nextjs_port
+        nextjs_port=${nextjs_port:-3000}
+        
+        # Validate port number
+        if ! [[ "$nextjs_port" =~ ^[0-9]+$ ]] || [ "$nextjs_port" -lt 1 ] || [ "$nextjs_port" -gt 65535 ]; then
+            print_error "Invalid port number. Using default port 3000."
+            nextjs_port=3000
+        fi
+        
+        # Export variables for use in start_services
+        export NEXTJS_PATH="$nextjs_path"
+        export NEXTJS_PORT="$nextjs_port"
+        
+        return 0  # Return true, start Next.js
+    done
 }
 
 # Function to start all services
@@ -343,21 +449,60 @@ start_services() {
         fi
     fi
     
-    # Start Next.js app in background
-    print_status "Starting Next.js app..."
-    cd next-app
-    if command_exists pnpm; then
-        pnpm dev &
+    # Prompt for Next.js configuration
+    NEXTJS_PID=""
+    if prompt_nextjs_config; then
+        # Start Next.js app with custom configuration
+        print_status "Starting Next.js app from '$NEXTJS_PATH' on port $NEXTJS_PORT..."
+        
+        # Save current directory
+        ORIGINAL_DIR=$(pwd)
+        
+        # Change to Next.js app directory
+        cd "$NEXTJS_PATH"
+        
+        # Check if node_modules exists, if not install dependencies
+        if [ ! -d "node_modules" ]; then
+            print_status "Installing dependencies in $NEXTJS_PATH..."
+            if command_exists pnpm; then
+                pnpm install
+            elif command_exists npm; then
+                npm install
+            elif command_exists yarn; then
+                yarn install
+            fi
+        fi
+        
+        # Start the Next.js app with the specified port
+        if command_exists pnpm; then
+            PORT=$NEXTJS_PORT pnpm dev &
+        elif command_exists npm; then
+            PORT=$NEXTJS_PORT npm run dev &
+        elif command_exists yarn; then
+            PORT=$NEXTJS_PORT yarn dev &
+        else
+            print_error "No package manager found to start Next.js app"
+            cd "$ORIGINAL_DIR"
+            NEXTJS_PID=""
+        fi
+        
+        if [ "$?" -eq 0 ]; then
+            NEXTJS_PID=$!
+            print_success "Next.js app started with PID $NEXTJS_PID"
+        fi
+        
+        # Return to original directory
+        cd "$ORIGINAL_DIR"
     else
-        npm run dev &
+        print_status "Skipping Next.js startup"
     fi
-    NEXTJS_PID=$!
-    cd ..
     
     # Function to cleanup on exit
     cleanup() {
         print_status "Shutting down services..."
-        kill $NEXTJS_PID 2>/dev/null
+        if [ ! -z "$NEXTJS_PID" ]; then
+            kill $NEXTJS_PID 2>/dev/null
+        fi
         supabase stop
         exit 0
     }
@@ -370,7 +515,9 @@ start_services() {
     print_status "Services running:"
     echo "  - Supabase Studio: http://localhost:54323"
     echo "  - Supabase API: http://localhost:54321"
-    echo "  - Next.js App: http://localhost:3000"
+    if [ ! -z "$NEXTJS_PID" ]; then
+        echo "  - Next.js App: http://localhost:$NEXTJS_PORT (from $NEXTJS_PATH)"
+    fi
     echo "  - Ollama API: http://localhost:11434"
     echo ""
     print_status "Press Ctrl+C to stop all services"

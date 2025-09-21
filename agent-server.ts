@@ -70,14 +70,17 @@ async function initializeAgent() {
     await stagehand.init();
     await stagehand.startMonitoring();
     
-    // Navigate to the test app (try port 3001 first, then 3000)
+    // Navigate to the test app (use TARGET_PORT from environment or default to 3000)
+    const targetPort = process.env.TARGET_PORT || '3000';
+    const targetUrl = `http://localhost:${targetPort}`;
+    
     try {
-      await stagehand.page.goto('http://localhost:3001');
-      console.log('✅ Connected to frontend on port 3001');
+      await stagehand.page.goto(targetUrl);
+      console.log(`✅ Connected to application on port ${targetPort}`);
     } catch (error) {
-      console.log('Port 3001 not available, trying 3000...');
-      await stagehand.page.goto('http://localhost:3000');
-      console.log('✅ Connected to frontend on port 3000');
+      console.log(`⚠️ Failed to connect to ${targetUrl}`);
+      console.log('Please ensure your application is running on the specified port.');
+      throw error;
     }
     
     // Handle browser page close
@@ -189,19 +192,16 @@ app.post('/test', async (req, res) => {
       console.log(`📍 Current page: ${currentUrl}`);
       
       // Skip reload if we're already on the right page and it's responsive
-      if (currentUrl.includes('localhost:3001') || currentUrl.includes('localhost:3000')) {
+      const targetPort = process.env.TARGET_PORT || '3000';
+      const targetUrl = `http://localhost:${targetPort}`;
+      
+      if (currentUrl.includes(`localhost:${targetPort}`)) {
         console.log('✅ Page is already loaded and responsive');
       } else {
         // Navigate to frontend if we're on wrong page
         console.log('🔄 Navigating to frontend...');
-        try {
-          await stagehand.page.goto('http://localhost:3001', { waitUntil: 'networkidle' });
-          console.log('✅ Connected to frontend on port 3001');
-        } catch (navError) {
-          console.log('Port 3001 not available, trying 3000...');
-          await stagehand.page.goto('http://localhost:3000', { waitUntil: 'networkidle' });
-          console.log('✅ Connected to frontend on port 3000');
-        }
+        await stagehand.page.goto(targetUrl, { waitUntil: 'networkidle' });
+        console.log(`✅ Connected to application on port ${targetPort}`);
       }
       
       await stagehand.page.waitForTimeout(1000);
@@ -209,14 +209,10 @@ app.post('/test', async (req, res) => {
       console.log('⚠️ Page appears to be closed, attempting to navigate to frontend...');
       
       // Try to navigate to the frontend again
-      try {
-        await stagehand.page.goto('http://localhost:3001', { waitUntil: 'networkidle' });
-        console.log('✅ Reconnected to frontend on port 3001');
-      } catch (navError) {
-        console.log('Port 3001 not available, trying 3000...');
-        await stagehand.page.goto('http://localhost:3000', { waitUntil: 'networkidle' });
-        console.log('✅ Reconnected to frontend on port 3000');
-      }
+      const targetPort = process.env.TARGET_PORT || '3000';
+      const targetUrl = `http://localhost:${targetPort}`;
+      await stagehand.page.goto(targetUrl, { waitUntil: 'networkidle' });
+      console.log(`✅ Reconnected to application on port ${targetPort}`);
       
       await stagehand.page.waitForTimeout(1000);
     }
