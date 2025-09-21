@@ -1,5 +1,5 @@
-import { CerebrasClient } from './cerebras-client';
-import { DOCXGenerator, DOCXGenerationOptions } from './docx-creator';
+import { CerebrasClient } from '../agent/cerebras-client';
+import { PDFGenerator, PDFGenerationOptions } from './pdf-creator';
 import * as fs from 'fs';
 import * as path from 'path';
 import dotenv from 'dotenv';
@@ -7,19 +7,18 @@ import dotenv from 'dotenv';
 // Load environment variables from .env file
 dotenv.config();
 
-export interface DOCXContentGenerationOptions extends DOCXGenerationOptions {
-  contentType?: 'report' | 'article' | 'document' | 'analysis' | 'summary' | 'proposal' | 'manual';
+export interface PDFContentGenerationOptions extends PDFGenerationOptions {
+  contentType?: 'report' | 'article' | 'document' | 'analysis' | 'summary';
   length?: 'short' | 'medium' | 'long';
-  style?: 'formal' | 'casual' | 'technical' | 'academic' | 'business';
+  style?: 'formal' | 'casual' | 'technical' | 'academic';
   includeSections?: boolean;
   includeConclusion?: boolean;
   includeReferences?: boolean;
-  includeTableOfContents?: boolean;
 }
 
-export class DOCXContentGenerator {
+export class PDFContentGenerator {
   private cerebrasClient: CerebrasClient;
-  private docxGenerator: DOCXGenerator;
+  private pdfGenerator: PDFGenerator;
 
   constructor() {
     // Get API key from environment variables
@@ -29,13 +28,13 @@ export class DOCXContentGenerator {
     }
 
     this.cerebrasClient = new CerebrasClient(apiKey);
-    this.docxGenerator = new DOCXGenerator();
+    this.pdfGenerator = new PDFGenerator();
   }
 
-  async generateDOCXFromPrompt(
+  async generatePDFFromPrompt(
     prompt: string,
     outputPath: string,
-    options: DOCXContentGenerationOptions = {}
+    options: PDFContentGenerationOptions = {}
   ): Promise<string> {
     try {
       console.log('🤖 Generating content with Cerebras AI...');
@@ -43,10 +42,10 @@ export class DOCXContentGenerator {
       // Generate content using Cerebras API
       const content = await this.generateContent(prompt, options);
       
-      console.log('📄 Converting content to DOCX...');
+      console.log('📄 Converting content to PDF...');
       
-      // Generate DOCX from the content
-      const docxPath = await this.docxGenerator.generateFromText(
+      // Generate PDF from the content
+      const pdfPath = await this.pdfGenerator.generateFromText(
         content,
         outputPath,
         {
@@ -54,20 +53,21 @@ export class DOCXContentGenerator {
           author: options.author || 'AI Content Generator',
           subject: options.subject,
           keywords: options.keywords,
-          company: options.company,
-          category: options.category,
-          comments: options.comments
+          format: options.format,
+          landscape: options.landscape,
+          printBackground: options.printBackground,
+          margin: options.margin
         }
       );
 
-      console.log('✅ DOCX generated successfully!');
-      return docxPath;
+      console.log('✅ PDF generated successfully!');
+      return pdfPath;
     } catch (error) {
-      throw new Error(`DOCX content generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`PDF content generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
-  private async generateContent(prompt: string, options: DOCXContentGenerationOptions): Promise<string> {
+  private async generateContent(prompt: string, options: PDFContentGenerationOptions): Promise<string> {
     const systemPrompt = this.buildSystemPrompt(options);
     
     try {
@@ -83,8 +83,8 @@ export class DOCXContentGenerator {
     }
   }
 
-  private buildSystemPrompt(options: DOCXContentGenerationOptions): string {
-    let systemPrompt = 'You are a professional content writer. Create comprehensive, well-structured content that would be suitable for a professional Word document. ';
+  private buildSystemPrompt(options: PDFContentGenerationOptions): string {
+    let systemPrompt = 'You are a professional content writer. Create comprehensive, well-structured content that would be suitable for a professional document. ';
 
     // Content type instructions
     switch (options.contentType) {
@@ -102,12 +102,6 @@ export class DOCXContentGenerator {
         break;
       case 'summary':
         systemPrompt += 'Create a comprehensive summary with key points and main takeaways. ';
-        break;
-      case 'proposal':
-        systemPrompt += 'Structure this as a business proposal with problem statement, solution, benefits, and implementation plan. ';
-        break;
-      case 'manual':
-        systemPrompt += 'Create a step-by-step manual with clear instructions and procedures. ';
         break;
       default:
         systemPrompt += 'Create well-structured content with clear organization. ';
@@ -140,17 +134,10 @@ export class DOCXContentGenerator {
       case 'academic':
         systemPrompt += 'Use academic writing style with proper citations and formal structure. ';
         break;
-      case 'business':
-        systemPrompt += 'Use business writing style with clear, actionable language. ';
-        break;
     }
 
     // Structure requirements
     systemPrompt += 'Use clear headings (## for main sections, ### for subsections) and proper formatting. ';
-    
-    if (options.includeTableOfContents) {
-      systemPrompt += 'Include a table of contents at the beginning. ';
-    }
     
     if (options.includeSections !== false) {
       systemPrompt += 'Organize content into logical sections with descriptive headings. ';
@@ -172,11 +159,11 @@ export class DOCXContentGenerator {
   async generateReport(
     topic: string,
     outputPath: string,
-    options: DOCXContentGenerationOptions = {}
+    options: PDFContentGenerationOptions = {}
   ): Promise<string> {
     const reportPrompt = `Create a comprehensive report on: ${topic}`;
     
-    return this.generateDOCXFromPrompt(reportPrompt, outputPath, {
+    return this.generatePDFFromPrompt(reportPrompt, outputPath, {
       ...options,
       contentType: 'report',
       title: options.title || `Report: ${topic}`,
@@ -187,11 +174,11 @@ export class DOCXContentGenerator {
   async generateArticle(
     topic: string,
     outputPath: string,
-    options: DOCXContentGenerationOptions = {}
+    options: PDFContentGenerationOptions = {}
   ): Promise<string> {
     const articlePrompt = `Write an engaging article about: ${topic}`;
     
-    return this.generateDOCXFromPrompt(articlePrompt, outputPath, {
+    return this.generatePDFFromPrompt(articlePrompt, outputPath, {
       ...options,
       contentType: 'article',
       title: options.title || `Article: ${topic}`,
@@ -202,11 +189,11 @@ export class DOCXContentGenerator {
   async generateAnalysis(
     topic: string,
     outputPath: string,
-    options: DOCXContentGenerationOptions = {}
+    options: PDFContentGenerationOptions = {}
   ): Promise<string> {
     const analysisPrompt = `Provide a detailed analysis of: ${topic}`;
     
-    return this.generateDOCXFromPrompt(analysisPrompt, outputPath, {
+    return this.generatePDFFromPrompt(analysisPrompt, outputPath, {
       ...options,
       contentType: 'analysis',
       title: options.title || `Analysis: ${topic}`,
@@ -214,77 +201,19 @@ export class DOCXContentGenerator {
     });
   }
 
-  async generateProposal(
-    topic: string,
-    outputPath: string,
-    options: DOCXContentGenerationOptions = {}
-  ): Promise<string> {
-    const proposalPrompt = `Create a business proposal for: ${topic}`;
-    
-    return this.generateDOCXFromPrompt(proposalPrompt, outputPath, {
-      ...options,
-      contentType: 'proposal',
-      title: options.title || `Proposal: ${topic}`,
-      subject: options.subject || `Business proposal for ${topic}`
-    });
-  }
-
-  async generateManual(
-    topic: string,
-    outputPath: string,
-    options: DOCXContentGenerationOptions = {}
-  ): Promise<string> {
-    const manualPrompt = `Create a step-by-step manual for: ${topic}`;
-    
-    return this.generateDOCXFromPrompt(manualPrompt, outputPath, {
-      ...options,
-      contentType: 'manual',
-      title: options.title || `Manual: ${topic}`,
-      subject: options.subject || `Instruction manual for ${topic}`
-    });
-  }
-
-  async generateTable(
-    headers: string[],
-    rows: string[][],
-    outputPath: string,
-    options: DOCXContentGenerationOptions = {}
-  ): Promise<string> {
-    try {
-      console.log('📊 Generating DOCX table...');
-      
-      const docxPath = await this.docxGenerator.generateTable(
-        headers,
-        rows,
-        outputPath,
-        {
-          title: options.title || 'Generated Table',
-          author: options.author || 'AI Table Generator',
-          subject: options.subject || 'Data table document'
-        }
-      );
-
-      console.log('✅ DOCX table generated successfully!');
-      return docxPath;
-    } catch (error) {
-      throw new Error(`DOCX table generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  }
-
   async close(): Promise<void> {
-    // DOCX generator doesn't need cleanup like PDF generator
-    // but we keep this method for consistency
+    await this.pdfGenerator.close();
   }
 }
 
 // Example usage and CLI interface
 async function main() {
-  let generator: DOCXContentGenerator | undefined;
+  let generator: PDFContentGenerator | undefined;
   
   try {
-    console.log('🚀 DOCX Content Generator with Cerebras AI\n');
+    console.log('🚀 PDF Content Generator with Cerebras AI\n');
 
-    generator = new DOCXContentGenerator();
+    generator = new PDFContentGenerator();
     const outputDir = './generated-files';
     
     // Ensure output directory exists
@@ -292,26 +221,25 @@ async function main() {
       fs.mkdirSync(outputDir, { recursive: true });
     }
 
-    // Generate a single DOCX document
-    console.log('📊 Generating DOCX document...');
-    const docxPath = await generator.generateDOCXFromPrompt(
-      'Create a comprehensive business report about digital transformation in healthcare, including current trends, implementation challenges, benefits, case studies, and future outlook.',
-      path.join(outputDir, 'healthcare_digital_transformation_report'),
+    // Generate a single PDF document
+    console.log('📊 Generating PDF document...');
+    const pdfPath = await generator.generatePDFFromPrompt(
+      'Create a comprehensive report about the future of artificial intelligence in healthcare, including current applications, emerging technologies, challenges, opportunities, and future predictions.',
+      path.join(outputDir, 'ai_healthcare_future_report'),
       {
         contentType: 'report',
         length: 'medium',
-        style: 'business',
-        title: 'Digital Transformation in Healthcare',
-        author: 'Healthcare Research Team',
+        style: 'formal',
+        title: 'AI in Healthcare: Future Outlook',
+        author: 'AI Research Team',
         subject: 'Healthcare Technology Analysis',
-        keywords: ['digital transformation', 'healthcare', 'technology', 'innovation'],
-        includeTableOfContents: true,
+        keywords: ['artificial intelligence', 'healthcare', 'technology', 'future'],
         includeReferences: true
       }
     );
-    console.log('✅ DOCX generated:', docxPath);
+    console.log('✅ PDF generated:', pdfPath);
 
-    console.log('\n🎉 DOCX generated successfully!');
+    console.log('\n🎉 PDF generated successfully!');
     console.log(`📁 Check the ${outputDir} directory for your generated file.`);
 
   } catch (error) {

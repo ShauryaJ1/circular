@@ -1,5 +1,5 @@
-import { StagehandWithBrowserTools } from './stagehand-browser-tools';
-import { getStagehandConfig, getProviderInfo } from './config';
+import { StagehandWithBrowserTools } from '../agent/stagehand-browser-tools';
+import { getStagehandConfig, getProviderInfo } from '../agent/config';
 import dotenv from 'dotenv';
 
 dotenv.config();

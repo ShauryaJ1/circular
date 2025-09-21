@@ -98,7 +98,7 @@ echo Starting agent server...
 echo Browser will open and stay visible
 echo.
 cd /d "%SCRIPT_DIR%"
-tsx agent-server.ts
+tsx src/agent/agent-server.ts
 goto :end
 
 :test
@@ -113,7 +113,7 @@ goto :loop
 
 :dotest
 cd /d "%SCRIPT_DIR%"
-tsx agent-client.ts %args%
+tsx src/agent/agent-client.ts %args%
 goto :end
 
 :help

@@ -59,6 +59,6 @@
 
 @layer utilities {
   .code-block {
-    @apply bg-gray-100 dark:bg-gray-800 p-3 rounded-md text-sm font-mono overflow-x-auto;
+    @apply bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white p-3 rounded-md text-sm font-mono overflow-x-auto;
   }
 }

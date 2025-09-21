@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { retrieveLogs, searchByTags, disconnect } from './lib/log-operations';
+import { retrieveLogs, searchByTags, disconnect } from '../../lib/log-operations';
 import * as dotenv from 'dotenv';
 
 // Load environment variables

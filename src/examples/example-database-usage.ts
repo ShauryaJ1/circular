@@ -1,4 +1,4 @@
-import { QADatabaseService } from './lib/database';
+import { QADatabaseService } from '../../lib/database';
 import { LogLevel } from '@prisma/client';
 import dotenv from 'dotenv';
 

@@ -5,7 +5,7 @@ import { getStagehandConfig, getProviderInfo, getAgentConfig, getProvider } from
 // Function to create run entry via API
 async function createRunEntry(taskId: string, status: string, metadata: any = {}) {
   try {
-    const response = await fetch('http://localhost:3001/api/runs', {
+    const response = await fetch('http://localhost:3000/api/runs', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

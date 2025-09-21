@@ -1,12 +1,10 @@
-import { StagehandWithBrowserTools } from './stagehand-browser-tools';
-import { saveFailedRequestsToFile, formatFailedRequestsSummary } from './save-failed-requests';
-import { getStagehandConfig } from './config';
-import dotenv from 'dotenv';
-
-dotenv.config();
+import { StagehandWithBrowserTools } from '../agent/stagehand-browser-tools';
+import { getStagehandConfig, getProviderInfo } from '../agent/config';
+import { saveFailedRequestsToFile, formatFailedRequestsSummary } from '../utils/save-failed-requests';
 
 async function runStagehandWithBrowserTools() {
-  const modelConfig = getStagehandConfig();
+  const providerInfo = getProviderInfo();
+  console.log(`Using ${providerInfo.name} (${providerInfo.model})`);
   
   const stagehand = new StagehandWithBrowserTools({
     env: 'LOCAL',
@@ -14,7 +12,7 @@ async function runStagehandWithBrowserTools() {
       headless: false,
       devtools: true,
     },
-    ...modelConfig,
+    ...getStagehandConfig(),
   });
 
   try {
@@ -25,7 +23,6 @@ async function runStagehandWithBrowserTools() {
     await stagehand.page.goto('http://localhost:3000');
     
     console.log('\n=== Testing Console Logs ===');
-    // Navigate to a test page and interact with it
     await stagehand.page.goto('https://example.com');
     await stagehand.page.waitForTimeout(1000);
     
@@ -33,7 +30,6 @@ async function runStagehandWithBrowserTools() {
     console.log('Console Logs:', consoleLogs);
 
     console.log('\n=== Testing LocalStorage ===');
-    // Set some localStorage data
     await stagehand.page.evaluate(() => {
       localStorage.setItem('test-key', 'test-value');
     });
@@ -43,7 +39,6 @@ async function runStagehandWithBrowserTools() {
     console.log('Storage Data:', storageData);
 
     console.log('\n=== Testing Network Requests ===');
-    // Make a network request
     await stagehand.page.goto('https://httpbin.org/get');
     await stagehand.page.waitForTimeout(2000);
     
@@ -51,7 +46,6 @@ async function runStagehandWithBrowserTools() {
     console.log('Network Logs:', networkLogs);
 
     console.log('\n=== Testing Failed Requests ===');
-    // Try to access a non-existent page
     await stagehand.page.goto('https://httpbin.org/status/404');
     await stagehand.page.waitForTimeout(2000);
     
@@ -64,7 +58,7 @@ async function runStagehandWithBrowserTools() {
       console.log(`Failed requests saved to: ${filepath}`);
     }
 
-    // Get page content
+    // Get page data
     console.log('\n=== Getting Page Data ===');
     const pageTitle = await stagehand.page.title();
     const pageUrl = stagehand.page.url();

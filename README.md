@@ -261,42 +261,42 @@ pnpm test:failed-requests
 ## Project Structure
 
 ```
-stagehand_with_browser_tools/
-├── stagehand-browser-tools.ts  # Extended Stagehand class with browser tools
-├── config.ts                    # Configuration helper for provider switching
+circular/
+├── src/
+│   ├── agent/                   # Agent system core files
+│   │   ├── agent.ts            # Main CLI entry point
+│   │   ├── agent-server.ts     # Agent server that runs browser
+│   │   ├── agent-client.ts     # Client for sending test commands
+│   │   ├── stagehand-browser-tools.ts # Extended Stagehand class
+│   │   └── config.ts           # Configuration helper
+│   │
+│   ├── examples/               # Usage examples
+│   │   ├── example-usage.ts    # Basic example
+│   │   ├── example-agent-usage.ts # Agent example
+│   │   └── example-*-flexible.ts # Auto-detect provider examples
+│   │
+│   ├── tests/                  # Test files
+│   │   ├── test-setup.ts       # Setup verification
+│   │   └── test-*.ts           # Various test files
+│   │
+│   ├── utils/                  # Utility functions
+│   │   ├── save-failed-requests.ts # Failed request file saver
+│   │   ├── *-generator.ts      # Content generators
+│   │   └── setup-*.sh          # Setup scripts
+│   │
+│   └── docs/                   # Documentation
+│       ├── AGENT_USAGE.md      # Agent usage guide
+│       ├── SETUP_GUIDE.md      # Setup instructions
+│       └── *.md                # Other guides
 │
-├── Agent System (NEW!)
-│   ├── agent.ts                # Main CLI entry point
-│   ├── agent-server.ts         # Agent server that runs browser
-│   ├── agent-client.ts         # Client for sending test commands
-│   ├── agent.sh                # Unix/Mac shell script
-│   └── agent.bat               # Windows batch script
-│
-├── Examples
-│   ├── example-usage.ts        # Basic example
-│   ├── example-agent-usage.ts   # Agent example
-│   ├── example-usage-flexible.ts # Auto-detect provider
-│   └── example-agent-flexible.ts # Auto-detect provider agent
-│
-├── Testing
-│   ├── test-setup.ts           # Setup verification
-│   ├── test-failed-requests.ts  # Test failed request capture
-│   └── test-agent-system.sh    # Test the agent system
-│
-├── next-app/                    # Test Next.js application
-│   ├── src/
-│   │   ├── app/                # Next.js app router pages
-│   │   ├── server/             # tRPC server setup
-│   │   ├── components/         # React components
-│   │   └── utils/              # Utility functions
-│   └── ...
-│
-├── Utilities
-│   └── save-failed-requests.ts  # Failed request file saver
-│
-├── package.json                 # Project dependencies and scripts
-├── env.sample                   # Environment variables template
-└── README.md                    # This file
+├── frontend/                   # Next.js test application
+├── demo-apps/                  # Demo applications for testing
+├── lib/                        # Shared libraries
+├── prisma/                     # Database schema and migrations
+├── agent.sh / agent.bat        # CLI scripts
+├── package.json                # Project dependencies and scripts
+├── env.sample                  # Environment variables template
+└── README.md                   # This file
 ```
 
 ## Test Scenarios

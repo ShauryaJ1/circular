@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { storeLog, retrieveLogs, disconnect } from './lib/log-operations';
+import { storeLog, retrieveLogs, disconnect } from '../../lib/log-operations';
 import * as dotenv from 'dotenv';
 
 dotenv.config();

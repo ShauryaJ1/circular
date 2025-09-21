@@ -1,6 +1,6 @@
-import { StagehandWithBrowserTools } from './stagehand-browser-tools';
-import { saveFailedRequestsToFile, formatFailedRequestsSummary } from './save-failed-requests';
-import { getStagehandConfig, getProviderInfo } from './config';
+import { StagehandWithBrowserTools } from '../agent/stagehand-browser-tools';
+import { saveFailedRequestsToFile, formatFailedRequestsSummary } from '../utils/save-failed-requests';
+import { getStagehandConfig, getProviderInfo } from '../agent/config';
 
 /**
  * Quick test to demonstrate saving failed requests to a text file
