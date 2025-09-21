@@ -49,23 +49,14 @@ export default function DashboardPage() {
   const recentRuns = runs.slice(0, 3)
 
   // Calculate real stats from runs data
-  const uniqueTaskIds = [...new Set(runs.map(run => run.taskId))]
-  const completedRuns = runs.filter(r => r.status === 'completed')
+  const uniqueTaskIds = Array.from(new Set(runs.map(run => run.taskId)))
   const runningRuns = runs.filter(r => r.status === 'running')
-  const activeTaskIds = [...new Set(runningRuns.map(run => run.taskId))]
-  
-  // Calculate average runtime from completed runs that have duration
-  const runsWithDuration = completedRuns.filter(run => run.duration && run.duration > 0)
-  const averageRunTime = runsWithDuration.length > 0 
-    ? Math.round(runsWithDuration.reduce((sum, run) => sum + (run.duration || 0), 0) / runsWithDuration.length)
-    : 0
+  const activeTaskIds = Array.from(new Set(runningRuns.map(run => run.taskId)))
 
   const realStats = {
     totalTasks: uniqueTaskIds.length,
     activeTasks: activeTaskIds.length,
     totalRuns: runs.length,
-    successRate: runs.length > 0 ? Math.round((completedRuns.length / runs.length) * 100) : 0,
-    averageRunTime: averageRunTime,
   }
 
   return (
@@ -84,7 +75,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Tasks</CardTitle>
@@ -111,34 +102,6 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
-              <Badge variant="outline" className="text-green-700 bg-green-50">
-                {realStats.successRate}%
-              </Badge>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{realStats.successRate}%</div>
-              <p className="text-xs text-muted-foreground">
-                Overall success rate
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Avg Runtime</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {formatDuration(realStats.averageRunTime)}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Average execution time
-              </p>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Log Statistics */}
