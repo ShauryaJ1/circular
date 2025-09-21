@@ -40,16 +40,7 @@ export async function GET() {
     return NextResponse.json(transformedRuns)
   } catch (error) {
     console.error('Failed to fetch runs:', error)
-    
-    // Check if it's a database connection error
-    if (error.message?.includes('connect') || error.message?.includes('ECONNREFUSED')) {
-      return NextResponse.json({ 
-        error: 'Database not available. Please set up Supabase locally or configure DATABASE_URL.',
-        runs: [] 
-      }, { status: 200 }) // Return 200 with empty data instead of 500
-    }
-    
-    return NextResponse.json({ error: 'Failed to fetch runs', runs: [] }, { status: 200 })
+    return NextResponse.json({ error: 'Failed to fetch runs' }, { status: 500 })
   }
 }
 
