@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { NetworkLog } from './stagehand-browser-tools';
+import { NetworkLog } from '../agent/stagehand-browser-tools';
 
 /**
  * Format and save failed requests to a text file

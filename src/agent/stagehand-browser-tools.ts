@@ -1,8 +1,8 @@
 import { Stagehand } from '@browserbasehq/stagehand';
 import { Page, BrowserContext, Request, Response, ConsoleMessage } from 'playwright';
-import { PDFContentGenerator, PDFContentGenerationOptions } from './pdf-content-generator';
-import { CSVContentGenerator, CSVContentGenerationOptions } from './csv-content-generator';
-import { DOCXContentGenerator, DOCXContentGenerationOptions } from './docx-content-generator';
+import { PDFContentGenerator, PDFContentGenerationOptions } from '../utils/pdf-content-generator';
+import { CSVContentGenerator, CSVContentGenerationOptions } from '../utils/csv-content-generator';
+import { DOCXContentGenerator, DOCXContentGenerationOptions } from '../utils/docx-content-generator';
 import * as fs from 'fs';
 import * as path from 'path';
 

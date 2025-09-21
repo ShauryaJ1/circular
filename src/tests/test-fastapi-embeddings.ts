@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { generateEmbedding, generateEmbeddingsBatch, cosineSimilarity, checkEmbeddingService } from './lib/embeddings';
+import { generateEmbedding, generateEmbeddingsBatch, cosineSimilarity, checkEmbeddingService } from '../../lib/embeddings';
 import * as dotenv from 'dotenv';
 
 dotenv.config();

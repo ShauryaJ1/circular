@@ -1,4 +1,4 @@
-import { CerebrasClient } from './cerebras-client';
+import { CerebrasClient } from '../agent/cerebras-client';
 import { CSVCreator, CSVGenerationOptions, CSVData } from './csv-creator';
 import * as fs from 'fs';
 import * as path from 'path';

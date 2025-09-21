@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { storeLog, disconnect } from './lib/log-operations';
+import { storeLog, disconnect } from '../../lib/log-operations';
 import * as dotenv from 'dotenv';
 
 // Load environment variables

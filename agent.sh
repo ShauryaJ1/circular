@@ -160,24 +160,24 @@ case "$1" in
         echo ""
         
         # Pass the port as an environment variable
-        TARGET_PORT="$target_port" cd "$SCRIPT_DIR" && tsx agent-server.ts
+        TARGET_PORT="$target_port" cd "$SCRIPT_DIR" && tsx src/agent/agent-server.ts
         ;;
         
     --test|-t)
         shift # Remove --test from arguments
-        cd "$SCRIPT_DIR" && tsx agent-client.ts "$@"
+        cd "$SCRIPT_DIR" && tsx src/agent/agent-client.ts "$@"
         ;;
         
     --store|-s)
         shift # Remove --store from arguments
         echo -e "${GREEN}📝 Storing log entry...${NC}"
-        cd "$SCRIPT_DIR" && tsx agent-store.ts "$@"
+        cd "$SCRIPT_DIR" && tsx src/agent/agent-store.ts "$@"
         ;;
         
     --retrieve|--search|-g)
         shift # Remove --retrieve from arguments
         echo -e "${BLUE}🔍 Retrieving logs...${NC}"
-        cd "$SCRIPT_DIR" && tsx agent-retrieve.ts "$@"
+        cd "$SCRIPT_DIR" && tsx src/agent/agent-retrieve.ts "$@"
         ;;
         
     --help|-h|"")

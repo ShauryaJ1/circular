@@ -1,6 +1,6 @@
-import { StagehandWithBrowserTools } from './stagehand-browser-tools';
-import { getStagehandConfig, getAgentConfig, getProviderInfo } from './config';
-import { saveFailedRequestsToFile, formatFailedRequestsSummary } from './save-failed-requests';
+import { StagehandWithBrowserTools } from '../agent/stagehand-browser-tools';
+import { getStagehandConfig, getAgentConfig, getProviderInfo } from '../agent/config';
+import { saveFailedRequestsToFile, formatFailedRequestsSummary } from '../utils/save-failed-requests';
 
 /**
  * Example showing how to use the agent functionality with browser monitoring

@@ -1,5 +1,5 @@
-import { StagehandWithBrowserTools } from './stagehand-browser-tools';
-import { getStagehandConfig, getProviderInfo } from './config';
+import { StagehandWithBrowserTools } from '../agent/stagehand-browser-tools';
+import { getStagehandConfig, getProviderInfo } from '../agent/config';
 
 /**
  * Test script to verify browser stays visible
