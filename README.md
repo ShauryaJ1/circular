@@ -6,71 +6,71 @@ Circular extends Cursor and other AI-powered IDEs with intelligent browser testi
 
 ---
 
-## 🎯 Inspiration  
+## Inspiration  
 
 Circular works as an extension for AI-native IDEs, offering an agentic approach to browser testing that combines the simplicity of natural language commands with the depth of DevTools monitoring. The inspiration for this project came from two of our team members, who had written over 300,000 lines of "vibe coding" while working at a startup this summer. They experienced firsthand the limitations of Cursor, particularly that it couldn't actually test the code it generated.  
 
-## 💡 What it does  
+## What it does  
 
 Circular solves Cursor's primary flaw: **it can't verify if its code works**. Our agent runs tests in the browser, monitors DevTools for issues, and learns from past solutions to solve similar bugs more efficiently. This makes Cursor's vibe coding workflow more robust by adding actual validation and memory of prior fixes. As this is integrated into AI-Native IDEs like Cursor through editing the Cursor rules, Circular's testing provides an additional layer of quality assurance and greatly streamlines the debugging process
 
 **Key Features:**
-- 🤖 **Natural Language Testing** - "Click the login button and verify it works"
-- 🔍 **DevTools Monitoring** - Captures console logs, network requests, storage changes
-- 🧠 **Learning Memory** - Matches current problems against historical fixes
-- ⚡ **Real-time Feedback** - Integrates directly with your IDE workflow
-- 📊 **Comprehensive Logging** - Full observability of browser automation
-- 🖥️ **Web Dashboard** - Beautiful Next.js interface to view all test logs, runs, and solutions in real-time
+- **Natural Language Testing** - "Click the login button and verify it works"
+- **DevTools Monitoring** - Captures console logs, network requests, storage changes
+- **Learning Memory** - Matches current problems against historical fixes
+- **Real-time Feedback** - Integrates directly with your IDE workflow
+- **Comprehensive Logging** - Full observability of browser automation
+- **Web Dashboard** - Beautiful Next.js interface to view all test logs, runs, and solutions in real-time
 
-## 🛠️ How we built it  
+## How we built it  
 
 We built our agent using **Stagehand** (built on Playwright) to automate browser interactions. Alongside this, we created a **Next.js + pgVector + Supabase** web app to store logs of past issues and their resolutions, enabling the agent to match current problems against historical fixes. 
 
 ### Tech Stack:
-- **🎭 Browser Automation**: Stagehand + Playwright for natural language browser control
-- **🧠 LLMs**: Cerebras API and open-source models for intelligent test generation
-- **🔗 Embeddings**: Local Ollama server (embedding-gemma) for efficient similarity matching
-- **💾 Database**: PostgreSQL with pgVector for semantic search capabilities
-- **🖥️ Frontend**: Next.js dashboard for real-time monitoring and management
-- **🔌 Integration**: Direct Cursor integration with custom rules and context
+- ** Browser Automation**: Stagehand + Playwright for natural language browser control
+- ** LLMs**: Cerebras API and open-source models for intelligent test generation
+- ** Embeddings**: Local Ollama server (embedding-gemma) for efficient similarity matching
+- ** Database**: PostgreSQL with pgVector for semantic search capabilities
+- ** Frontend**: Next.js dashboard for real-time monitoring and management
+- ** Integration**: Direct Cursor integration with custom rules and context
 
-## 🚧 Challenges we ran into  
+## Challenges we ran into  
 
 - **Model Selection**: Choosing models small enough to run locally without sacrificing performance (embedding-gemma at ~600MB vs. Qwen3 embeddings at ~8GB)
 - **IDE Integration**: Defining Cursor rules so our extension could provide the right testing context
 - **DevTools Access**: Figuring out how to give Stagehand access to DevTools and formatting error outputs so Cursor could understand them
 - **Performance**: Waiting for the agent to fully interact with the created project was slower than ideal
 
-## 🏆 Accomplishments that we're proud of  
+## Accomplishments that we're proud of  
 
 We're proud to have built a product that **meaningfully improves on Cursor**, one of the most popular AI coding tools today. Circular integrates seamlessly into Cursor, enhances its capabilities, and has the potential to revolutionize coding workflows by bridging the gap between vibe coding and validation.  
 
-## 📚 What we learned  
+## What we learned  
 
 - How to build browser agents with Stagehand and Playwright
 - How to serve and use local models with Ollama  
 - How to design embedding-based retrieval for problem–solution matching
 - How critical context management is when working with AI-native IDEs
 
-## 🚀 What's next for Circular  
+## What's next for Circular  
 
-- **⚡ Performance**: Improved speed and efficiency
-- **🎤 Voice Testing**: Support for voice-based model testing  
-- **📁 File Formats**: Support for testing the upload of more file formats
-- **🏠 Local Models**: Running the browser agent fully on local models
-- **🌍 Accessibility**: Expanding access so that every coder can use it
+- ** Performance**: Improved speed and efficiency
+- ** Voice Testing**: Support for voice-based model testing  
+- ** File Formats**: Support for testing the upload of more file formats
+- ** Local Models**: Running the browser agent fully on local models
+- ** Accessibility**: Expanding access so that every coder can use it
 
-## 🖥️ Web Dashboard
+## Web Dashboard
 
 Circular includes a comprehensive **Next.js dashboard** that provides real-time visibility into all your browser automation activities:
 
 ### Dashboard Features:
-- **📊 Overview Dashboard** - System statistics, recent runs, and activity summaries
-- **📝 Logs Viewer** - Detailed log entries with filtering, search, and expandable details
-- **🏃 Test Runs** - History of all test executions with status, duration, and metadata
-- **💡 Solutions Database** - Knowledge base of past issues and their resolutions
-- **🔍 Semantic Search** - Find similar issues using AI-powered embeddings
-- **📱 Responsive Design** - Works on desktop, tablet, and mobile devices
+- ** Overview Dashboard** - System statistics, recent runs, and activity summaries
+- ** Logs Viewer** - Detailed log entries with filtering, search, and expandable details
+- ** Test Runs** - History of all test executions with status, duration, and metadata
+- ** Solutions Database** - Knowledge base of past issues and their resolutions
+- ** Semantic Search** - Find similar issues using AI-powered embeddings
+- ** Responsive Design** - Works on desktop, tablet, and mobile devices
 
 ### Dashboard Pages:
 - **`/`** - Main dashboard with system overview and recent activity
@@ -82,7 +82,7 @@ The dashboard updates in real-time as your agent runs tests, providing immediate
 
 ---
 
-## 🛠️ Setup & Installation
+## Setup & Installation
 
 ### Prerequisites
 - Node.js 18+ installed
@@ -265,11 +265,11 @@ circular/
 └── agent.sh / agent.bat        # CLI scripts
 ```
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions! Whether you're fixing bugs, adding features, or improving documentation, every contribution helps make Circular better for the entire AI coding community.
 
-## 📄 License
+## License
 
 ISC License - see LICENSE file for details.
 
