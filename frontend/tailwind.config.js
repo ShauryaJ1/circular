@@ -42,6 +42,42 @@ module.exports = {
           foreground: "hsl(var(--card-foreground))",
         },
       },
+      fontFamily: {
+        'inter': ['var(--font-inter)', 'system-ui', 'sans-serif'],
+        'jetbrains': ['var(--font-jetbrains-mono)', 'Monaco', 'Consolas', 'monospace'],
+        'orbitron': ['var(--font-orbitron)', 'system-ui', 'sans-serif'],
+        'sans': ['var(--font-inter)', 'system-ui', 'sans-serif'],
+        'mono': ['var(--font-jetbrains-mono)', 'Monaco', 'Consolas', 'monospace'],
+      },
+      animation: {
+        'float': 'float 6s ease-in-out infinite',
+        'glow': 'glow 2s ease-in-out infinite alternate',
+        'slide-up': 'slideUp 0.8s ease-out',
+        'fade-in': 'fadeIn 1s ease-out',
+        'rotate-y': 'rotateY 20s linear infinite',
+      },
+      keyframes: {
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-20px)' },
+        },
+        glow: {
+          '0%': { boxShadow: '0 0 20px rgba(251, 146, 60, 0.5)' },
+          '100%': { boxShadow: '0 0 30px rgba(251, 146, 60, 0.8)' },
+        },
+        slideUp: {
+          '0%': { transform: 'translateY(100px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        rotateY: {
+          '0%': { transform: 'rotateY(0deg)' },
+          '100%': { transform: 'rotateY(360deg)' },
+        },
+      },
     },
   },
   plugins: [],
