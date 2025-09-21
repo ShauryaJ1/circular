@@ -92,6 +92,30 @@ class ApiService {
       throw error
     }
   }
+
+  // Fetch real task data from API (future implementation)
+  async fetchTasks() {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/tasks`)
+      if (!response.ok) {
+        // Tasks API not implemented yet, return empty array
+        if (response.status === 404) {
+          console.info('Tasks API not implemented yet (404), this is expected')
+          return []
+        }
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      const tasks = await response.json()
+      return tasks
+    } catch (error: any) {
+      // Don't log 404 errors as they're expected until we implement the tasks API
+      if (error.message?.includes('404')) {
+        return []
+      }
+      console.error('Failed to fetch tasks:', error)
+      return []
+    }
+  }
 }
 
 export const apiService = new ApiService()

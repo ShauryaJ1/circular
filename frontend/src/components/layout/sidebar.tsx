@@ -10,7 +10,7 @@ import {
 } from '@heroicons/react/24/outline'
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: HomeIcon },
+  { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
   { name: 'Logs', href: '/logs', icon: DocumentTextIcon },
   { name: 'Runs', href: '/runs', icon: PlayIcon },
 ]
@@ -23,14 +23,18 @@ export function Sidebar() {
       <div className="flex flex-col flex-grow bg-gray-50 dark:bg-gray-900 overflow-y-auto border-r border-gray-200 dark:border-gray-800">
         {/* Logo/Brand Section */}
         <div className="flex items-center px-4 py-6">
-          <div className="flex items-center">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">C</span>
+          <Link href="/" className="flex items-center">
+            <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
+              <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2L2 7L12 12L22 7L12 2Z"/>
+                <path d="M2 17L12 22L22 17"/>
+                <path d="M2 12L12 17L22 12"/>
+              </svg>
             </div>
-            <span className="ml-3 text-xl font-semibold text-gray-900 dark:text-white">
+            <span className="ml-3 text-xl font-semibold text-gray-900 dark:text-white font-orbitron">
               Circular
             </span>
-          </div>
+          </Link>
         </div>
         
         {/* Navigation */}
