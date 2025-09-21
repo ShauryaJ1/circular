@@ -34,8 +34,8 @@ export function EnhancedLogViewer({ logs }: EnhancedLogViewerProps) {
   const filteredLogs = logs.filter((log) => {
     const matchesSearch = log.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          log.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                         (log.issue?.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                         (log.solution?.title.toLowerCase().includes(searchTerm.toLowerCase()))
+                         (log.issue?.title?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                         (log.solution?.fullText?.toLowerCase().includes(searchTerm.toLowerCase()))
     
     // LogLevel filtering removed
     
@@ -230,10 +230,10 @@ export function EnhancedLogViewer({ logs }: EnhancedLogViewerProps) {
                           </div>
                           <div className="bg-white dark:bg-gray-800 p-3 rounded-md border border-emerald-100 dark:border-emerald-800/50">
                             <p className="text-sm text-gray-700 dark:text-gray-200 leading-relaxed">
-                              {log.solution!.solutionType ? 
-                                (log.solution!.solutionType.length > 200 ? 
-                                  log.solution!.solutionType.substring(0, 200) + '...' : 
-                                  log.solution!.solutionType
+                              {log.solution?.fullText ? 
+                                (log.solution.fullText.length > 200 ? 
+                                  log.solution.fullText.substring(0, 200) + '...' : 
+                                  log.solution.fullText
                                 ) : 
                                 'No solution details available'
                               }
@@ -277,7 +277,7 @@ export function EnhancedLogViewer({ logs }: EnhancedLogViewerProps) {
                                 <div>
                                   <span className="text-xs text-muted-foreground">Full Solution:</span>
                                   <div className="code-block mt-1">
-                                    {log.solution!.solutionType}
+                                    {log.solution?.fullText || 'No solution details available'}
                                   </div>
                                 </div>
                                 
