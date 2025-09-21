@@ -41,20 +41,31 @@ export default function DashboardPage() {
     fetchData()
   }, [])
 
-  // Calculate statistics
+  // Calculate statistics from real data
   const totalLogs = logs.length
   const logsWithIssues = logs.filter(log => log.issue).length
   const logsWithSolutions = logs.filter(log => log.solution).length
   const recentLogs = logs.slice(0, 5)
   const recentRuns = runs.slice(0, 3)
 
-  // Mock stats for tasks
-  const mockStats = {
-    totalTasks: 3,
-    activeTasks: 1,
+  // Calculate real stats from runs data
+  const uniqueTaskIds = [...new Set(runs.map(run => run.taskId))]
+  const completedRuns = runs.filter(r => r.status === 'completed')
+  const runningRuns = runs.filter(r => r.status === 'running')
+  const activeTaskIds = [...new Set(runningRuns.map(run => run.taskId))]
+  
+  // Calculate average runtime from completed runs that have duration
+  const runsWithDuration = completedRuns.filter(run => run.duration && run.duration > 0)
+  const averageRunTime = runsWithDuration.length > 0 
+    ? Math.round(runsWithDuration.reduce((sum, run) => sum + (run.duration || 0), 0) / runsWithDuration.length)
+    : 0
+
+  const realStats = {
+    totalTasks: uniqueTaskIds.length,
+    activeTasks: activeTaskIds.length,
     totalRuns: runs.length,
-    successRate: runs.length > 0 ? Math.round((runs.filter(r => r.status === 'completed').length / runs.length) * 100) : 0,
-    averageRunTime: 15000, // 15 seconds
+    successRate: runs.length > 0 ? Math.round((completedRuns.length / runs.length) * 100) : 0,
+    averageRunTime: averageRunTime,
   }
 
   return (
@@ -77,12 +88,12 @@ export default function DashboardPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Tasks</CardTitle>
-              <Badge variant="secondary">{mockStats.totalTasks}</Badge>
+              <Badge variant="secondary">{realStats.totalTasks}</Badge>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{mockStats.totalTasks}</div>
+              <div className="text-2xl font-bold">{realStats.totalTasks}</div>
               <p className="text-xs text-muted-foreground">
-                {mockStats.activeTasks} currently active
+                {realStats.activeTasks} currently active
               </p>
             </CardContent>
           </Card>
@@ -90,10 +101,10 @@ export default function DashboardPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Runs</CardTitle>
-              <Badge variant="secondary">{mockStats.totalRuns}</Badge>
+              <Badge variant="secondary">{realStats.totalRuns}</Badge>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{mockStats.totalRuns}</div>
+              <div className="text-2xl font-bold">{realStats.totalRuns}</div>
               <p className="text-xs text-muted-foreground">
                 Across all tasks
               </p>
@@ -104,11 +115,11 @@ export default function DashboardPage() {
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
               <Badge variant="outline" className="text-green-700 bg-green-50">
-                {mockStats.successRate}%
+                {realStats.successRate}%
               </Badge>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{mockStats.successRate}%</div>
+              <div className="text-2xl font-bold">{realStats.successRate}%</div>
               <p className="text-xs text-muted-foreground">
                 Overall success rate
               </p>
@@ -121,7 +132,7 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {formatDuration(mockStats.averageRunTime)}
+                {formatDuration(realStats.averageRunTime)}
               </div>
               <p className="text-xs text-muted-foreground">
                 Average execution time
