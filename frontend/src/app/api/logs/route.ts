@@ -18,13 +18,31 @@ export async function GET() {
       message: log.issueText || 'No message available',
       timestamp: new Date(log.timestamp || log.createdAt), // Ensure valid Date object
       tags: Array.isArray(log.tags) ? log.tags : [], // Match updated string[] type
+      issue: log.issueText ? {
+        id: log.id + '_issue',
+        title: 'Issue',
+        description: log.issueText.substring(0, 100) + (log.issueText.length > 100 ? '...' : ''),
+        fullText: log.issueText,
+        severity: 'medium' as const,
+        category: 'other' as const,
+        tags: Array.isArray(log.tags) ? log.tags : [],
+        detectedAt: new Date(log.timestamp || log.createdAt),
+        context: log.metadata as any
+      } : undefined,
       solution: log.solutionText ? {
         id: log.id + '_solution',
-        issueText: log.issueText || 'No issue description',
-        solutionText: log.solutionText,
-        createdAt: new Date(log.createdAt), // Ensure valid Date object
-        tags: Array.isArray(log.tags) ? log.tags : []
-      } : null
+        issueId: log.id + '_issue',
+        title: 'Solution',
+        description: log.solutionText.substring(0, 100) + (log.solutionText.length > 100 ? '...' : ''),
+        fullText: log.solutionText,
+        solutionType: 'fix' as const,
+        tags: Array.isArray(log.tags) ? log.tags : [],
+        appliedAt: new Date(log.updatedAt || log.createdAt),
+        effectiveness: 100,
+        steps: [],
+        solutionText: log.solutionText // Keep this for backward compatibility
+      } : undefined,
+      metadata: log.metadata as any
     }))
 
     return NextResponse.json(transformedLogs)
