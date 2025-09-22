@@ -54,23 +54,23 @@ We're proud to have built a product that **meaningfully improves on Cursor**, on
 
 ## What's next for Circular  
 
-- ** Performance**: Improved speed and efficiency
-- ** Voice Testing**: Support for voice-based model testing  
-- ** File Formats**: Support for testing the upload of more file formats
-- ** Local Models**: Running the browser agent fully on local models
-- ** Accessibility**: Expanding access so that every coder can use it
+- **Performance**: Improved speed and efficiency
+- **Voice Testing**: Support for voice-based model testing  
+- **File Formats**: Support for testing the upload of more file formats
+- **Local Models**: Running the browser agent fully on local models
+- **Accessibility**: Expanding access so that every coder can use it
 
 ## Web Dashboard
 
 Circular includes a comprehensive **Next.js dashboard** that provides real-time visibility into all your browser automation activities:
 
 ### Dashboard Features:
-- ** Overview Dashboard** - System statistics, recent runs, and activity summaries
-- ** Logs Viewer** - Detailed log entries with filtering, search, and expandable details
-- ** Test Runs** - History of all test executions with status, duration, and metadata
-- ** Solutions Database** - Knowledge base of past issues and their resolutions
-- ** Semantic Search** - Find similar issues using AI-powered embeddings
-- ** Responsive Design** - Works on desktop, tablet, and mobile devices
+- **Overview Dashboard** - System statistics, recent runs, and activity summaries
+- **Logs Viewer** - Detailed log entries with filtering, search, and expandable details
+- **Test Runs** - History of all test executions with status, duration, and metadata
+- **Solutions Database** - Knowledge base of past issues and their resolutions
+- **Semantic Search** - Find similar issues using AI-powered embeddings
+- **Responsive Design** - Works on desktop, tablet, and mobile devices
 
 ### Dashboard Pages:
 - **`/`** - Main dashboard with system overview and recent activity
@@ -89,6 +89,8 @@ The dashboard updates in real-time as your agent runs tests, providing immediate
 - pnpm installed (`npm install -g pnpm`)
 - API key from one of the supported providers
 - Supabase account (for database and embeddings)
+- Docker
+- Ollama
 
 ### 1. Database Setup (Supabase)
 
@@ -166,7 +168,7 @@ For enhanced privacy and performance, you can run embeddings locally using Ollam
 
 2. **Pull the Embedding Model**:
    ```bash
-   ollama pull embedding-gemma
+   ollama pull embeddinggemma:300m
    ```
 
 3. **Start Ollama Service**:
