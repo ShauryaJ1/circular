@@ -1,6 +1,6 @@
 # Circular
 
-**The missing piece for AI-native IDEs: browser testing that actually works**
+**Close The Loop Between Vibe Coding and Software Testing**
 
 Circular extends Cursor and other AI-powered IDEs with intelligent browser testing capabilities, combining natural language commands with comprehensive DevTools monitoring and learning from past solutions.
 
@@ -27,12 +27,12 @@ Circular solves Cursor's primary flaw: **it can't verify if its code works**. Ou
 We built our agent using **Stagehand** (built on Playwright) to automate browser interactions. Alongside this, we created a **Next.js + pgVector + Supabase** web app to store logs of past issues and their resolutions, enabling the agent to match current problems against historical fixes. 
 
 ### Tech Stack:
-- ** Browser Automation**: Stagehand + Playwright for natural language browser control
-- ** LLMs**: Cerebras API and open-source models for intelligent test generation
-- ** Embeddings**: Local Ollama server (embedding-gemma) for efficient similarity matching
-- ** Database**: PostgreSQL with pgVector for semantic search capabilities
-- ** Frontend**: Next.js dashboard for real-time monitoring and management
-- ** Integration**: Direct Cursor integration with custom rules and context
+- **Browser Automation**: Stagehand + Playwright for natural language browser control
+- **LLMs**: Cerebras API and open-source models for intelligent test generation
+- **Embeddings**: Local Ollama server (embedding-gemma) for efficient similarity matching
+- **Database**: PostgreSQL with pgVector for semantic search capabilities
+- **Frontend**: Next.js dashboard for real-time monitoring and management
+- **Integration**: Direct Cursor integration with custom rules and context
 
 ## Challenges we ran into  
 
