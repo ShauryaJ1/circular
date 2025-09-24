@@ -72,14 +72,24 @@ prompt_api_keys() {
         fi
     fi
     
+    # Read ports from config.toml if it exists
+    if [ -f "../supabase/config.toml" ]; then
+        API_PORT=$(grep -A1 "^\[api\]" ../supabase/config.toml | grep "^port =" | sed 's/port = //')
+        DB_PORT=$(grep -A1 "^\[db\]" ../supabase/config.toml | grep "^port =" | sed 's/port = //')
+    else
+        # Default ports if config.toml not found (using project-2 port scheme)
+        API_PORT="64321"
+        DB_PORT="64322"
+    fi
+    
     # Ensure all required environment variables exist with placeholders
     # These will be updated with real values when Supabase starts
     if ! grep -q "^DATABASE_URL=" .env; then
-        echo "DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres" >> .env
+        echo "DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:$DB_PORT/postgres" >> .env
     fi
     
     if ! grep -q "^SUPABASE_URL=" .env; then
-        echo "SUPABASE_URL=http://127.0.0.1:54321" >> .env
+        echo "SUPABASE_URL=http://127.0.0.1:$API_PORT" >> .env
     fi
     
     if ! grep -q "^SUPABASE_ANON_KEY=" .env; then
@@ -276,7 +286,10 @@ setup_nextjs() {
     echo
     
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        read -p "Enter the directory name for the Next.js app (default: next-app): " app_dir
+        echo ""
+        echo "Current directory: $(pwd)"
+        echo "Tip: Use Tab for autocomplete"
+        read -e -p "Enter the directory name for the Next.js app (default: next-app): " app_dir
         app_dir=${app_dir:-next-app}
         
         if [ -d "$app_dir" ]; then
@@ -362,12 +375,23 @@ prompt_nextjs_config() {
         
         # Ask for the path to the Next.js app
         echo ""
-        read -p "Enter the path to your Next.js app (relative to current directory, default: next-app): " nextjs_path
+        echo "Current directory: $(pwd)"
+        echo "Tip: Use Tab for autocomplete, '..' for parent directory"
+        echo ""
+        read -e -p "Enter the path to your Next.js app (default: next-app): " nextjs_path
         nextjs_path=${nextjs_path:-next-app}
         
         # Check if the path exists
         if [ ! -d "$nextjs_path" ]; then
-            print_error "Directory '$nextjs_path' does not exist!"
+            # Show the absolute path that was checked
+            if [[ "$nextjs_path" = /* ]]; then
+                # Already absolute path
+                abs_path="$nextjs_path"
+            else
+                # Relative path - show it relative to current directory
+                abs_path="$(pwd)/$nextjs_path"
+            fi
+            print_error "Directory not found: $abs_path"
             read -p "Would you like to try another path? (y/n): " -n 1 -r
             echo
             if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -513,8 +537,27 @@ start_services() {
     print_success "All services started!"
     echo ""
     print_status "Services running:"
-    echo "  - Supabase Studio: http://localhost:54323"
-    echo "  - Supabase API: http://localhost:54321"
+    
+    # Extract ports from environment or use defaults
+    if [ -f "$SCRIPT_DIR/../.env" ]; then
+        source "$SCRIPT_DIR/../.env"
+        # Extract port from SUPABASE_URL
+        SUPABASE_API_PORT=$(echo "$SUPABASE_URL" | grep -oE '[0-9]+$' || echo "64321")
+        # Studio port is typically API port + 2
+        SUPABASE_STUDIO_PORT=$((SUPABASE_API_PORT + 2))
+    else
+        # Read from config.toml or use new default ports
+        if [ -f "$SCRIPT_DIR/../../supabase/config.toml" ]; then
+            SUPABASE_API_PORT=$(grep -A1 "^\[api\]" "$SCRIPT_DIR/../../supabase/config.toml" | grep "^port =" | sed 's/port = //' || echo "64321")
+            SUPABASE_STUDIO_PORT=$(grep -A1 "^\[studio\]" "$SCRIPT_DIR/../../supabase/config.toml" | grep "^port =" | sed 's/port = //' || echo "64323")
+        else
+            SUPABASE_API_PORT="64321"
+            SUPABASE_STUDIO_PORT="64323"
+        fi
+    fi
+    
+    echo "  - Supabase Studio: http://localhost:$SUPABASE_STUDIO_PORT"
+    echo "  - Supabase API: http://localhost:$SUPABASE_API_PORT"
     if [ ! -z "$NEXTJS_PID" ]; then
         echo "  - Next.js App: http://localhost:$NEXTJS_PORT (from $NEXTJS_PATH)"
     fi

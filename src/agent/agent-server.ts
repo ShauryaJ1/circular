@@ -220,17 +220,55 @@ app.post('/test', async (req, res) => {
     // Clear previous logs
     stagehand.clearLogs();
     
-    // Prepare the full instruction with context
-    let fullInstruction = instruction;
+    // Base system prompt with guidelines for the agent
+    // Can be disabled by setting DISABLE_AGENT_GUIDELINES=true
+    const useGuidelines = process.env.DISABLE_AGENT_GUIDELINES !== 'true';
+    
+    const baseSystemPrompt = `You are a browser automation agent. Follow these guidelines:
+
+1. **Complete the Task**: Continue taking actions until you have fully completed the requested task. Don't stop prematurely.
+
+2. **Verify Success**: After completing actions, verify that the expected outcome has occurred (e.g., form submitted, page loaded, element appeared).
+
+3. **Handle Errors Gracefully**: 
+   - If you encounter an error message, report it clearly
+   - If something unexpected happens, describe what you observed
+   - If you discover a bug (e.g., button doesn't work, form won't submit), document it
+
+4. **Stop When Appropriate**:
+   - Stop if you've successfully completed the task
+   - Stop if you're confused about what to do next (explain why)
+   - Stop if you encounter a bug that prevents task completion
+   - Stop if the page is in an unexpected state
+
+5. **Be Thorough**: 
+   - Wait for page loads and animations to complete
+   - Check that your actions had the intended effect
+   - Don't assume success without verification
+
+6. **Provide Clear Feedback**: Always explain what you're doing and what you observe.`;
+
+    // Prepare the full instruction with context and guidelines
+    let fullInstruction = useGuidelines ? baseSystemPrompt + "\n\n" : "";
+    
     if (context) {
-      fullInstruction = `Context: ${context}\n\nTask: ${instruction}`;
+      fullInstruction += `Context: ${context}\n\n`;
+    }
+    
+    fullInstruction += `Task to Complete: ${instruction}`;
+    
+    if (useGuidelines) {
+      fullInstruction += "\n\nRemember: Continue taking actions until the task is fully complete, you're confused about how to proceed, or you've discovered a bug that prevents completion.";
+      console.log('📋 Using agent guidelines for task completion');
+    } else {
+      console.log('⚠️ Agent guidelines disabled (DISABLE_AGENT_GUIDELINES=true)');
     }
     
     // Execute the agent task
     console.log('🤖 Executing agent task...');
     const result = await agent.execute({
       instruction: fullInstruction,
-      maxSteps: 10
+      maxSteps: 150
     });
     
     // Collect results
