@@ -2,7 +2,7 @@
 
 **Close The Loop Between Vibe Coding and Software Testing**
 
-Circular extends Cursor and other AI-powered IDEs with intelligent browser testing capabilities, combining natural language commands with comprehensive DevTools monitoring and learning from past solutions.
+Circular extends Cursor and other AI-powered IDEs with intelligent browser testing capabilities, combining natural language commands with comprehensive DevTools monitoring and learning from past solutions. Watch a demo here: https://www.youtube.com/watch?v=cdstzuBHT40
 
 ---
 
